@@ -1,0 +1,180 @@
+<html>
+    <head>
+        <title>Purchase Summary Report</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="https://s3-ap-southeast-1.amazonaws.com/realbooksimage/bootstrap.css"/>
+        <style>
+            @page {
+                size: landscape;
+                margin: 15;
+                @bottom-center {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+            }
+            .borderLeft {
+              border-left-color: #DDD;
+              border-left-style: solid;
+              border-left-width: 1px;
+            }
+            .borderRight {
+              border-right-color: #DDD;
+              border-right-style: solid;
+              border-right-width: 1px;
+            }
+            .borderBottom {
+              border-bottom-color: #656565;
+              border-bottom-style: solid;
+              border-bottom-width: 1px;
+            }
+            .borderTop {
+              border-top-color: #656565;
+              border-top-style: solid;
+              border-top-width: 2px;
+            }
+            .table {
+            	margin-bottom: 0px; 
+            }
+            .table-condensed>tbody>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>thead>tr>th {
+            	padding : 2px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+        	<table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+        		<thead>
+        			<tr>
+        				<td colspan="3" style="font-size: 18px;font-weight:bold;text-align:center;"><i>Office of the Managing Directing</i></td>
+        			</tr>
+        			<tr>
+        				<td colspan="3" class="borderLeft borderRight" style="font-size: 18px;font-weight: bold;text-align:center;">Mayurakshi Co-operative Milk Producers' Union Ltd.. Birbhum</td>
+        			</tr>
+        			<tr>
+        				<td width="40%" class="borderLeft"  style="font-size: 12px;"></td>
+        				<td width="30%" style="font-size: 15px;"><b>Purchase Summary Report</b> </td>
+        				<td width="30%" class="borderRight" style="font-size: 12px;text-align: right;">$fromDate <b>to</b> $toDate</td>
+        			</tr>
+        		</thead>
+        		<tbody>
+        			<tr>
+                        <td colspan="3" style="padding:0px">
+                            <table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+                                <thead>
+                                    <tr>
+                                        <td class="borderLeft" style="font-size: 12px; text-align:left;font-weight: bold;">Party</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Milk(KG)<br/>MilkPrice</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Fat(Kg)<br/>SNF(KG)</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Commission<br/>Advance</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Incentive<br/>Cattle Feed</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Head Load<br/>MTE</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Sour Milk<br/>Fodder</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Advance<br/>Cow Loan</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Test Egp<br/>Vaccine</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Late Arrival<br/>Share</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Arrear<br/>Others</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Adjustment<br/>&nbsp;</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Others<br/>&nbsp;</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Total Add.<br/>Total Deduct.</td>
+                                        <td class="borderRight" style="font-size: 12px; text-align:right;font-weight: bold;">Bill Total</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                	#set($alltotalMilkKg = 0)
+                                	#set($allTotalMilkPrice = 0)
+                                	#set($allTotalKGFat = 0)
+                                	#set($allTotalKGSnf = 0)
+                                	#set($allTotalCommission = 0)
+                                	#set($allTotalSplIncentive = 0)
+                                	#set($allTotalHeadLoad = 0)
+                                	#set($allTotalSourMilk = 0)
+                                	#set($allTotalAddAdvance = 0)
+                                	#set($allTotalTestEquipMent = 0)
+                                	#set($allTotalLateArrival = 0)
+                                	#set($allTotalArrear = 0)
+                                	#set($allTotalAdjustment = 0)
+                                	#set($allTotalAddOthers = 0)
+                                	#set($allTotalDeductAdvance = 0)
+                                	#set($allTotalCattleFeed = 0)
+                                	#set($allTotalMte = 0)
+                                	#set($allTotalFodder = 0)
+                                	#set($allTotalCowLoan = 0)
+                                	#set($allTotalVaccine = 0)
+                                	#set($allTotalShare = 0)
+                                	#set($allTotalDeductOthers = 0)
+                                	#set($allTotalAddition = 0)
+                                	#set($allTotalDeduction = 0)
+                                	#set($grandBillTotal = 0)
+                                	#foreach($list in $purchaseSummList)
+                               			#set($alltotalMilkKg = $alltotalMilkKg + $list.totalMilkKg)
+                               			#set($allTotalMilkPrice = $allTotalMilkPrice + $list.totalMilkPrice)
+                               			#set($allTotalKGFat = $allTotalKGFat + $list.totalKGFat)
+                               			#set($allTotalKGSnf = $allTotalKGSnf + $list.totalKGSnf)
+                               			#set($allTotalCommission = $allTotalCommission + $list.commission)
+	                                	#set($allTotalSplIncentive = $allTotalSplIncentive + $list.splIncentive)
+	                                	#set($allTotalHeadLoad = $allTotalHeadLoad + $list.headLoad)
+	                                	#set($allTotalSourMilk = $allTotalSourMilk + $list.sourMilk)
+	                                	#set($allTotalAddAdvance = $allTotalAddAdvance + $list.addAdvance)
+	                                	#set($allTotalTestEquipMent = $allTotalTestEquipMent + $list.testEquipMent)
+	                                	#set($allTotalLateArrival = $allTotalLateArrival + $list.lateArrival)
+	                                	#set($allTotalArrear = $allTotalArrear + $list.arrear)
+	                                	#set($allTotalAdjustment = $allTotalAdjustment + $list.adjustment)
+	                                	#set($allTotalAddOthers = $allTotalAddOthers + $list.addOthers)
+	                                	#set($allTotalDeductAdvance = $allTotalDeductAdvance + $list.deductAdvance)
+	                                	#set($allTotalCattleFeed = $allTotalCattleFeed + $list.cattleFeed)
+	                                	#set($allTotalMte = $allTotalMte + $list.mte)
+	                                	#set($allTotalFodder = $allTotalFodder + $list.fodder)
+	                                	#set($allTotalCowLoan = $allTotalCowLoan + $list.cowLoan)
+	                                	#set($allTotalVaccine = $allTotalVaccine + $list.vaccine)
+	                                	#set($allTotalShare = $allTotalShare + $list.share)
+	                                	#set($allTotalDeductOthers = $allTotalDeductOthers + $list.deductOthers)
+	                                	#set($allTotalAddition = $allTotalAddition + $list.totalAdditions)
+	                                	#set($allTotalDeduction = $allTotalDeduction + $list.totalAdditions)
+	                                	#set($grandBillTotal = $grandBillTotal + $list.billTotal)
+	                                    <tr>
+	                                        <td class="borderLeft" style="font-size: 10px;">$list.partyName</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.totalMilkKg<br/>$list.totalMilkPrice</td>
+	                                        <td style="font-size: 10px;text-align:right">$list.totalKGFat<br/>$list.totalKGSnf</td>
+	                                        <td style="font-size: 10px;text-align:right">$list.commission<br/>$list.deductAdvance</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.splIncentive<br/>$list.cattleFeed</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.headLoad<br/>$list.mte</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.sourMilk<br/>$list.fodder</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.addAdvance<br/>$list.cowLoan</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.testEquipMent<br/>$list.vaccine</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.lateArrival<br/>$list.share</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.arrear<br/>$list.deductOthers</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.adjustment<br/></td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.addOthers<br/></td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.totalAdditions<br/>$list.totalDeductions</td>
+	                                        <td class="borderRight" style="font-size: 10px; text-align:right;">$list.billTotal</td>
+	                                    </tr>
+                                    #end
+                                    <tr>
+                                        <td colspan="15" class="borderBottom"></td>
+                                    </tr>
+                                    <tr>
+                                        <th style="font-size: 10px;">Grand Total</th>
+                                        <th style="font-size: 10px; text-align:right;">$alltotalMilkKg<br/>$allTotalMilkPrice</th>
+                                        <th style="font-size: 10px;text-align:right">$allTotalKGFat<br/>$allTotalKGSnf</th>
+                                        <th style="font-size: 10px;text-align:right">$allTotalCommission<br/>$allTotalDeductAdvance</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalSplIncentive<br/>$allTotalCattleFeed</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalHeadLoad<br/>$allTotalMte</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalSourMilk<br/>$allTotalFodder</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAddAdvance<br/>$allTotalCowLoan</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalTestEquipMent<br/>$allTotalVaccine</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalLateArrival<br/>$allTotalShare</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalArrear<br/>$allTotalDeductOthers</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAdjustment<br/></th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAddOthers<br/></th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAddition<br/>$allTotalDeduction</th>
+                                        <th style="font-size: 10px; text-align:right;">$grandBillTotal</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+        		</tbody>
+        	</table>
+        </div>
+	</body>
+</html>

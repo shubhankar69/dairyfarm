@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dairy Farm</title>
+<script th:src="@{/js/jquery-3.1.1.min.js}"></script>
+<link rel="stylesheet"
+	th:href="@{/css/2.c536cac2.chunk.css}">
+<script
+	th:src="@{/js/semantic.min.js}"></script>
+<style>
+.ui.container.formContainer {
+	margin-left: 25% !important;
+	margin-right: 25% !important;
+	width: 50% !important;
+}
+.boldText{
+	font-weight: bold !important;
+}
+</style>
+<script>
+	$(function() {
+		loadFYList();
+	});
+
+	function loadFYList() {
+		$.ajax({
+			url : "http://localhost:8080/dairyfarm/sessionperiod/fetch/all",
+			type : 'GET',
+			dataType : 'json',
+			success : function(result) {
+				var options = '<option value="0">Select Session</option>';
+				var data = result.data;
+				if (data.length > 0) {
+					for (var i = 0; i < data.length; i++) {
+						var dataObj = data[i], option = '<option value="'+dataObj.id+'">'
+								+ dataObj.sessionName + '</option>';
+						options = options === "" ? option : options
+								+ option;
+					}
+					$("#sessionDD").html(options);
+				}
+			}
+		});
+	}
+
+	function changeDropdown() {
+		var sessionDD = $("#sessionDD option:selected").val();
+		$("#hiddenSessionId").val(sessionDD).trigger("change")
+	}
+	function addYearConfirm() {
+		$('.mini.modal.conf').modal({
+		    onDeny    : function(){
+		    	$('.mini.modal').modal('hide');
+		    },
+		    onApprove : function() {
+		      createNewSession();
+		    }
+		  }).modal('show');
+	}
+	function createNewSession(){
+		$('.mini.modal').modal('hide');
+		$.ajax({
+			url : "http://localhost:8080/dairyfarm/sessionperiod/create",
+			type : 'POST',
+			dataType : 'json',
+			success : function(result) {
+				var type = result.type == "success" ? "Success" : "Error",
+					msg = result.msg;
+				$('.mini.modal.returnAlert').find(".header").text(type);
+				$('.mini.modal.returnAlert').find(".content").find("p").text(msg);
+				$('.mini.modal.returnAlert').modal({
+				    onApprove : function() {
+						loadFYList();
+				    	$('.mini.modal.returnAlert').modal('hide');
+				    }
+				  }).modal('show');
+			}
+		});
+	}
+</script>
+</head>
+
+<body>
+	<br>
+	<br>
+	<br>
+	<div class="ui container">
+		<div class="ui container formContainer">
+			<form action="#" th:action="@{/}" th:object="${sessionObj}" method="POST">
+				<table class="ui table">
+					<tbody class="">
+						<tr class="">
+							<td class="" style="width: 20%;"><label class="boldText">Financial Year: </label></td>
+							<td colspan="2" class="" style="width: 80%;">
+							<select
+								id="sessionDD" name="id" class="ui fluid search dropdown"
+								onchange="changeDropdown()">
+	
+							</select> <input type="hidden" id="hiddenSessionId" th:value="0" /></td>
+						</tr>
+					</tbody>
+				</table>
+				<button type="button"
+					class="ui vk icon right labeled button CustomeBTN"
+					style="float: left;" onclick="addYearConfirm()">
+					Add Year <i aria-hidden="true" class="add circle icon"></i>
+				</button>
+				<button type="submit"
+					class="ui vk icon right labeled button CustomeBTN"
+					style="float: right;">
+					Go <i aria-hidden="true" class="arrow alternate circle right icon"></i>
+				</button>
+			</form>
+			<br>
+			<br>
+			<br>
+			<br>
+			<div class="ui mini modal conf">
+				<div class="header">Confirmation</div>
+				<div class="content">
+					<p>Do you want to add new Financial Year?</p>
+				</div>
+				<div class="actions">
+					<div class="ui positive right labeled icon button">
+						Yes <i class="checkmark icon"></i>
+					</div>
+					<div class="ui negative right labeled icon button">
+						No <i class="close icon"></i>
+					</div>
+				</div>
+			</div>
+			<div class="ui mini modal returnAlert">
+				<div class="header"></div>
+				<div class="content">
+					<p></p>
+				</div>
+				<div class="actions">
+					<div class="ui positive right labeled icon button">
+						okay <i class="checkmark icon"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>

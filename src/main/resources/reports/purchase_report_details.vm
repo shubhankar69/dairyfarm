@@ -1,0 +1,344 @@
+<html>
+    <head>
+        <title>Purchase Details Report</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="../src/main/resources/static/css/bootstrap3.4.0.css"/>
+        <style>
+            @page {
+                size: landscape;
+                margin: 15;
+                @bottom-center {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+            }
+            .borderLeft {
+              border-left-color: #DDD;
+              border-left-style: solid;
+              border-left-width: 1px;
+            }
+            .borderRight {
+              border-right-color: #DDD;
+              border-right-style: solid;
+              border-right-width: 1px;
+            }
+            .borderBottom {
+              border-bottom-color: #656565;
+              border-bottom-style: solid;
+              border-bottom-width: 1px;
+            }
+            .borderTop {
+              border-top-color: #656565;
+              border-top-style: solid;
+              border-top-width: 2px;
+            }
+            .table {
+            	margin-bottom: 0px; 
+            }
+            .table-condensed>tbody>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>thead>tr>th {
+            	padding : 2px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+        	<table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+        		<thead>
+        			<tr>
+        				<td colspan="3" style="font-size: 18px;font-weight:bold;text-align:center;"><i>Office of the Managing Directing</i></td>
+        			</tr>
+        			<tr>
+        				<td colspan="3" class="borderLeft borderRight" style="font-size: 18px;font-weight: bold;text-align:center;">Mayurakshi Co-operative Milk Producers' Union Ltd.. Birbhum</td>
+        			</tr>
+        			<tr>
+        				<td width="40%" class="borderLeft"  style="font-size: 12px;"></td>
+        				<td width="30%" style="font-size: 15px;"><b>Purchase Details Report</b> </td>
+        				<td width="30%" class="borderRight" style="font-size: 12px;text-align: right;">$fromDate <b>to</b> $toDate</td>
+        			</tr>
+        		</thead>
+        		<tbody>
+        			<tr>
+                        <td colspan="3" style="padding:0px">
+                            <table width="100%" cellpadding="0" cellspacing="0" class="table table-condensed">
+                                <thead>
+                                    <tr>
+                                        <td class="borderLeft" style="font-size: 12px; text-align:left;font-weight: bold;">Bill No<br/>Bill Date</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Milk(KG)<br/>MilkPrice</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Fat(Kg)<br/>SNF(KG)</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Commission<br/>Advance</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Incentive<br/>Cattle Feed</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Head Load<br/>MTE</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Sour Milk<br/>Fodder</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Advance<br/>Cow Loan</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Test Egp<br/>Vaccine</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Late Arrival<br/>Share</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Arrear<br/>Others</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Adjustment<br/>&nbsp;</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Others<br/>&nbsp;</td>
+                                        <td style="font-size: 12px; text-align:right;font-weight: bold;">Total Add.<br/>Total Deduct.</td>
+                                        <td class="borderRight" style="font-size: 12px; text-align:right;font-weight: bold;">Bill Total</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                	#set($alltotalMilkKg = 0)
+                                	#set($allTotalMilkPrice = 0)
+                                	#set($allTotalKGFat = 0)
+                                	#set($allTotalKGSnf = 0)
+                                	#set($allTotalCommission = 0)
+                                	#set($allTotalSplIncentive = 0)
+                                	#set($allTotalHeadLoad = 0)
+                                	#set($allTotalSourMilk = 0)
+                                	#set($allTotalAddAdvance = 0)
+                                	#set($allTotalTestEquipMent = 0)
+                                	#set($allTotalLateArrival = 0)
+                                	#set($allTotalArrear = 0)
+                                	#set($allTotalAdjustment = 0)
+                                	#set($allTotalAddOthers = 0)
+                                	#set($allTotalDeductAdvance = 0)
+                                	#set($allTotalCattleFeed = 0)
+                                	#set($allTotalMte = 0)
+                                	#set($allTotalFodder = 0)
+                                	#set($allTotalCowLoan = 0)
+                                	#set($allTotalVaccine = 0)
+                                	#set($allTotalShare = 0)
+                                	#set($allTotalDeductOthers = 0)
+                                	#set($allTotalAddition = 0)
+                                	#set($allTotalDeduction = 0)
+                                	#set($grandBillTotal = 0)
+                                	#set($partyTotalMilkKg = 0)
+                                	#set($partyTotalMilkPrice = 0)
+                                	#set($partyTotalKGFat = 0)
+                                	#set($partyTotalKGSnf = 0)
+                                	#set($partyTotalcommission = 0)
+                                	#set($partyTotalDeductAdvance = 0)
+                                	#set($partyTotalSplIncentive = 0)
+                                	#set($partyTotalCattleFeed = 0)
+                                	#set($partyTotalheadLoad = 0)
+                                	#set($partyTotalMte = 0)
+                                	#set($partyTotalSourMilk = 0)
+                                	#set($partyTotalFodder = 0)
+                                	#set($partyTotalAddAdvance = 0)
+                                	#set($partyTotalCowLoan = 0)
+                                	#set($partyTotalTestEquipMent = 0)
+                                	#set($partyTotalVaccine = 0)
+                                	#set($partyTotalLateArrival = 0)
+                                	#set($partyTotalShare = 0)
+                                	#set($partyTotalArrear = 0)
+                                	#set($partyTotalDeductOthers = 0)
+                                	#set($partyTotalAdjustment = 0)
+                                	#set($partyTotalAddOthers = 0)
+                                	#set($partyTotalAdditions = 0)
+                                	#set($partyTotalDeductions = 0)
+                                	#set($partyBillTotal = 0)
+                                	#set($count = 0)
+                                	#foreach($list in $purchaseSummList)
+                               			#set($alltotalMilkKg = $alltotalMilkKg + $list.totalMilkKg)
+                               			#set($allTotalMilkPrice = $allTotalMilkPrice + $list.totalMilkPrice)
+                               			#set($allTotalKGFat = $allTotalKGFat + $list.totalKGFat)
+                               			#set($allTotalKGSnf = $allTotalKGSnf + $list.totalKGSnf)
+                               			#set($allTotalCommission = $allTotalCommission + $list.commission)
+	                                	#set($allTotalSplIncentive = $allTotalSplIncentive + $list.splIncentive)
+	                                	#set($allTotalHeadLoad = $allTotalHeadLoad + $list.headLoad)
+	                                	#set($allTotalSourMilk = $allTotalSourMilk + $list.sourMilk)
+	                                	#set($allTotalAddAdvance = $allTotalAddAdvance + $list.addAdvance)
+	                                	#set($allTotalTestEquipMent = $allTotalTestEquipMent + $list.testEquipMent)
+	                                	#set($allTotalLateArrival = $allTotalLateArrival + $list.lateArrival)
+	                                	#set($allTotalArrear = $allTotalArrear + $list.arrear)
+	                                	#set($allTotalAdjustment = $allTotalAdjustment + $list.adjustment)
+	                                	#set($allTotalAddOthers = $allTotalAddOthers + $list.addOthers)
+	                                	#set($allTotalDeductAdvance = $allTotalDeductAdvance + $list.deductAdvance)
+	                                	#set($allTotalCattleFeed = $allTotalCattleFeed + $list.cattleFeed)
+	                                	#set($allTotalMte = $allTotalMte + $list.mte)
+	                                	#set($allTotalFodder = $allTotalFodder + $list.fodder)
+	                                	#set($allTotalCowLoan = $allTotalCowLoan + $list.cowLoan)
+	                                	#set($allTotalVaccine = $allTotalVaccine + $list.vaccine)
+	                                	#set($allTotalShare = $allTotalShare + $list.share)
+	                                	#set($allTotalDeductOthers = $allTotalDeductOthers + $list.deductOthers)
+	                                	#set($allTotalAddition = $allTotalAddition + $list.totalAdditions)
+	                                	#set($allTotalDeduction = $allTotalDeduction + $list.totalAdditions)
+	                                	#set($grandBillTotal = $grandBillTotal + $list.billTotal)
+	                                	#if($list.partyName != '')
+	                                		#set($count = $count + 1)
+	                                		
+	                                		#if($partyTotalMilkKg != 0)
+	                                			#set($count = 0)
+	                                			<tr>
+			                                        <th class="borderLeft" style="font-size: 10px;">Total</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalMilkKg<br/>$partyTotalMilkPrice</th>
+			                                        <th style="font-size: 10px;text-align:right">$partyTotalKGFat<br/>$partyTotalKGSnf</th>
+			                                        <th style="font-size: 10px;text-align:right">$partyTotalcommission<br/>$partyTotalDeductAdvance</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalSplIncentive<br/>$partyTotalCattleFeed</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalheadLoad<br/>$partyTotalMte</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalSourMilk<br/>$partyTotalFodder</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalAddAdvance<br/>$partyTotalCowLoan</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalTestEquipMent<br/>$partyTotalVaccine</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalLateArrival<br/>$partyTotalShare</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalArrear<br/>$partyTotalDeductOthers</th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalAdjustment<br/></th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalAddOthers<br/></th>
+			                                        <th style="font-size: 10px; text-align:right;">$partyTotalAdditions<br/>$partyTotalDeductions</th>
+			                                        <th class="borderRight" style="font-size: 10px; text-align:right;">$partyBillTotal</th>
+			                                    </tr>
+                                			#end
+                                			
+	                                		#set($partyTotalMilkKg = 0)
+	                                		#set($partyTotalMilkPrice = 0)
+	                                		#set($partyTotalKGFat = 0)
+	                                		#set($partyTotalKGSnf = 0)
+	                                		#set($partyTotalcommission = 0)
+	                                		#set($partyTotalDeductAdvance = 0)
+		                                	#set($partyTotalSplIncentive = 0)
+		                                	#set($partyTotalCattleFeed = 0)
+		                                	#set($partyTotalheadLoad = 0)
+		                                	#set($partyTotalMte = 0)
+		                                	#set($partyTotalSourMilk = 0)
+		                                	#set($partyTotalFodder = 0)
+		                                	#set($partyTotalAddAdvance = 0)
+		                                	#set($partyTotalCowLoan = 0)
+		                                	#set($partyTotalTestEquipMent = 0)
+		                                	#set($partyTotalVaccine = 0)
+		                                	#set($partyTotalLateArrival = 0)
+		                                	#set($partyTotalShare = 0)
+		                                	#set($partyTotalArrear = 0)
+		                                	#set($partyTotalDeductOthers = 0)
+		                                	#set($partyTotalAdjustment = 0)
+		                                	#set($partyTotalAddOthers = 0)
+		                                	#set($partyTotalAdditions = 0)
+		                                	#set($partyTotalDeductions = 0)
+		                                	#set($partyBillTotal = 0)
+		                                	<tr>
+		                                        <td class="borderLeft" style="font-size: 10px;"><b>$list.partyName</b></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px;text-align:right"></td>
+		                                        <td style="font-size: 10px;text-align:right"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td style="font-size: 10px; text-align:right;"></td>
+		                                        <td class="borderRight" style="font-size: 10px; text-align:right;"></td>
+		                                    </tr>
+		                                    
+		                                    #set($partyTotalMilkKg = $partyTotalMilkKg + $list.totalMilkKg)
+		                                    #set($partyTotalMilkPrice = $partyTotalMilkPrice + $list.totalMilkPrice)
+	                                    	#set($partyTotalKGFat = $partyTotalKGFat + $list.totalKGFat)
+	                                    	#set($partyTotalKGSnf = $partyTotalKGSnf + $list.totalKGSnf)
+	                                    	#set($partyTotalcommission = $partyTotalcommission + $list.commission)
+	                                    	#set($partyTotalDeductAdvance = $partyTotalDeductAdvance + $list.deductAdvance)
+	                                    	#set($partyTotalSplIncentive = $partyTotalSplIncentive + $list.splIncentive)
+	                                    	#set($partyTotalCattleFeed = $partyTotalCattleFeed + $list.cattleFeed)
+	                                    	#set($partyTotalheadLoad = $partyTotalheadLoad + $list.headLoad)
+	                                    	#set($partyTotalMte = $partyTotalMte + $list.mte)
+	                                    	#set($partyTotalSourMilk = $partyTotalSourMilk + $list.sourMilk)
+	                                    	#set($partyTotalFodder = $partyTotalFodder + $list.fodder)
+	                                    	#set($partyTotalAddAdvance = $partyTotalAddAdvance + $list.addAdvance)
+	                                    	#set($partyTotalCowLoan = $partyTotalCowLoan + $list.cowLoan)
+	                                    	#set($partyTotalTestEquipMent = $partyTotalTestEquipMent + $list.testEquipMent)
+	                                    	#set($partyTotalVaccine = $partyTotalVaccine + $list.vaccine)
+	                                    	#set($partyTotalLateArrival = $partyTotalLateArrival + $list.lateArrival)
+	                                    	#set($partyTotalShare = $partyTotalShare + $list.share)
+	                                    	#set($partyTotalArrear = $partyTotalArrear + $list.arrear)
+	                                    	#set($partyTotalDeductOthers = $partyTotalDeductOthers + $list.deductOthers)
+	                                    	#set($partyTotalAdjustment = $partyTotalAdjustment + $list.adjustment)
+	                                    	#set($partyTotalAddOthers = $partyTotalAddOthers + $list.addOthers)
+	                                    	#set($partyTotalAdditions = $partyTotalAdditions + $list.totalAdditions)
+	                                    	#set($partyTotalDeductions = $partyTotalDeductions + $list.totalDeductions)
+	                                    	#set($partyBillTotal = $partyBillTotal + $list.billTotal)
+	                                    #else
+	                                    	#set($partyTotalMilkKg = $partyTotalMilkKg + $list.totalMilkKg)
+	                                    	#set($partyTotalMilkPrice = $partyTotalMilkPrice + $list.totalMilkPrice)
+	                                    	#set($partyTotalKGFat = $partyTotalKGFat + $list.totalKGFat)
+	                                    	#set($partyTotalKGSnf = $partyTotalKGSnf + $list.totalKGSnf)
+	                                    	#set($partyTotalcommission = $partyTotalcommission + $list.commission)
+	                                    	#set($partyTotalDeductAdvance = $partyTotalDeductAdvance + $list.deductAdvance)
+	                                    	#set($partyTotalSplIncentive = $partyTotalSplIncentive + $list.splIncentive)
+	                                    	#set($partyTotalCattleFeed = $partyTotalCattleFeed + $list.cattleFeed)
+	                                    	#set($partyTotalheadLoad = $partyTotalheadLoad + $list.headLoad)
+	                                    	#set($partyTotalMte = $partyTotalMte + $list.mte)
+	                                    	#set($partyTotalSourMilk = $partyTotalSourMilk + $list.sourMilk)
+	                                    	#set($partyTotalFodder = $partyTotalFodder + $list.fodder)
+	                                    	#set($partyTotalAddAdvance = $partyTotalAddAdvance + $list.addAdvance)
+	                                    	#set($partyTotalCowLoan = $partyTotalCowLoan + $list.cowLoan)
+	                                    	#set($partyTotalTestEquipMent = $partyTotalTestEquipMent + $list.testEquipMent)
+	                                    	#set($partyTotalVaccine = $partyTotalVaccine + $list.vaccine)
+	                                    	#set($partyTotalLateArrival = $partyTotalLateArrival + $list.lateArrival)
+	                                    	#set($partyTotalShare = $partyTotalShare + $list.share)
+	                                    	#set($partyTotalArrear = $partyTotalArrear + $list.arrear)
+	                                    	#set($partyTotalDeductOthers = $partyTotalDeductOthers + $list.deductOthers)
+	                                    	#set($partyTotalAdjustment = $partyTotalAdjustment + $list.adjustment)
+	                                    	#set($partyTotalAddOthers = $partyTotalAddOthers + $list.addOthers)
+	                                    	#set($partyTotalAdditions = $partyTotalAdditions + $list.totalAdditions)
+	                                    	#set($partyTotalDeductions = $partyTotalDeductions + $list.totalDeductions)
+	                                    	#set($partyBillTotal = $partyBillTotal + $list.billTotal)
+	                                    #end
+	                                    <tr>
+	                                        <td class="borderLeft" style="font-size: 10px;">$list.billNo<br/>$list.billDate</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.totalMilkKg<br/>$list.totalMilkPrice</td>
+	                                        <td style="font-size: 10px;text-align:right">$list.totalKGFat<br/>$list.totalKGSnf</td>
+	                                        <td style="font-size: 10px;text-align:right">$list.commission<br/>$list.deductAdvance</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.splIncentive<br/>$list.cattleFeed</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.headLoad<br/>$list.mte</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.sourMilk<br/>$list.fodder</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.addAdvance<br/>$list.cowLoan</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.testEquipMent<br/>$list.vaccine</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.lateArrival<br/>$list.share</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.arrear<br/>$list.deductOthers</td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.adjustment<br/></td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.addOthers<br/></td>
+	                                        <td style="font-size: 10px; text-align:right;">$list.totalAdditions<br/>$list.totalDeductions</td>
+	                                        <td class="borderRight" style="font-size: 10px; text-align:right;">$list.billTotal</td>
+	                                    </tr>
+                                    #end
+                                    #if($count == 0)
+	                        			<tr>
+	                                        <th class="borderLeft" style="font-size: 10px;">Total</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalMilkKg<br/>$partyTotalMilkPrice</th>
+	                                        <th style="font-size: 10px;text-align:right">$partyTotalKGFat<br/>$partyTotalKGSnf</th>
+	                                        <th style="font-size: 10px;text-align:right">$partyTotalcommission<br/>$partyTotalDeductAdvance</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalSplIncentive<br/>$partyTotalCattleFeed</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalheadLoad<br/>$partyTotalMte</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalSourMilk<br/>$partyTotalFodder</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalAddAdvance<br/>$partyTotalCowLoan</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalTestEquipMent<br/>$partyTotalVaccine</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalLateArrival<br/>$partyTotalShare</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalArrear<br/>$partyTotalDeductOthers</th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalAdjustment<br/></th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalAddOthers<br/></th>
+	                                        <th style="font-size: 10px; text-align:right;">$partyTotalAdditions<br/>$partyTotalDeductions</th>
+	                                        <th class="borderRight" style="font-size: 10px; text-align:right;">$partyBillTotal</th>
+	                                    </tr>
+                            		#end
+                                    <tr>
+                                        <td colspan="15" class="borderBottom"></td>
+                                    </tr>
+                                    <tr>
+                                        <th style="font-size: 10px;">Grand Total</th>
+                                        <th style="font-size: 10px; text-align:right;">$alltotalMilkKg<br/>$allTotalMilkPrice</th>
+                                        <th style="font-size: 10px;text-align:right">$allTotalKGFat<br/>$allTotalKGSnf</th>
+                                        <th style="font-size: 10px;text-align:right">$allTotalCommission<br/>$allTotalDeductAdvance</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalSplIncentive<br/>$allTotalCattleFeed</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalHeadLoad<br/>$allTotalMte</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalSourMilk<br/>$allTotalFodder</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAddAdvance<br/>$allTotalCowLoan</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalTestEquipMent<br/>$allTotalVaccine</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalLateArrival<br/>$allTotalShare</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalArrear<br/>$allTotalDeductOthers</th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAdjustment<br/></th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAddOthers<br/></th>
+                                        <th style="font-size: 10px; text-align:right;">$allTotalAddition<br/>$allTotalDeduction</th>
+                                        <th style="font-size: 10px; text-align:right;">$grandBillTotal</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+        		</tbody>
+        	</table>
+        </div>
+	</body>
+</html>
