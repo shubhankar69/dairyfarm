@@ -1,0 +1,351 @@
+<html>
+    <head>
+        <title>Purchase Invoice</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        ##<link rel="stylesheet" type="text/css" href="../src/main/resources/static/css/bootstrap3.4.0.css"/>
+        <link rel="stylesheet" type="text/css" href="../webapps/dairyfarm/WEB-INF/classes/static/css/bootstrap3.4.0.css"/>
+        <style>
+            @page {
+                size: A4;
+                margin: 15;
+                @bottom-center {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+            }
+            .borderLeft {
+              border-left-color: #DDD;
+              border-left-style: solid;
+              border-left-width: 1px;
+            }
+            .borderRight {
+              border-right-color: #DDD;
+              border-right-style: solid;
+              border-right-width: 1px;
+            }
+            .borderBottom {
+              border-bottom-color: #656565;
+              border-bottom-style: solid;
+              border-bottom-width: 2px;
+            }
+            .table {
+            	margin-bottom: 0px; 
+            }
+            .table-condensed>tbody>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>thead>tr>th {
+            	padding : 2px;
+            }
+            .pagebreak {
+        clear: both;
+        page-break-before: always;
+    }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+        	<table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+        		<thead>
+        			<tr>
+        				<td colspan="4" style="font-size: 18px;font-weight:bold;text-align:center;"><i>Office of the Managing Directing</i></td>
+        			</tr>
+        			<tr>
+        				<td colspan="4" class="borderLeft borderRight" style="font-size: 18px;font-weight: bold;text-align:center;">Mayurakshi Co-operative Milk Producers' Union Ltd.. Birbhum</td>
+        			</tr>
+        			<tr>
+        				<td valign="top" width="25%" class="borderLeft"  style="font-size: 12px;padding-left:15px"><b>Bill No :</b> $billNo</td>
+        				<td valign="top" width="20%" style="font-size: 12px;"><b>Bill Date :</b> $billDate</td>
+        				<td valign="top" width="20%" style="font-size: 16px;"><b><u>Milk Bill</u></b> </td>
+        				<td valign="top" width="35%" class="borderRight" style="font-size: 12px;"><b>Bill Period :</b> $periodFromDate <b>to</b> $periodToDate</td>
+        			</tr>
+        			<tr>
+        				<td colspan="4" class="borderLeft borderRight" style="font-size: 12px;padding-left:15px"><b>Code No:</b> </td>
+        			</tr>
+        			<tr>
+                        <td colspan="4" class="borderLeft borderRight" style="font-size: 12px;text-align:left;padding-left:15px">
+                            <b>$partyName</b><br/>
+                            <b>Address :</b> $partyAddress<br/>
+                            <b>Plant : $plantName</b><br/>
+                            <b>A/c No :</b> $accNo
+                        </td>
+					</tr>
+        		</thead>
+        		<tbody>
+        			<tr>
+                        <td colspan="4" style="padding:0px">
+                            <table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+                                <thead>
+                                    <tr>
+                                        <td class="borderLeft">&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td class="borderLeft borderRight" colspan="3" style="font-size: 12px;text-align:center;font-weight: bold;">Rate / KG</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td class="borderRight">&nbsp;</td>
+                                    </tr>
+                                    <tr>
+                                        <td width="15%" class="borderLeft" style="font-size: 12px; text-align:left;font-weight: bold;">Supply Date</td>
+                                        <td width="9%" style="font-size: 12px; text-align:Center;font-weight: bold;">Qty(KG)</td>
+                                        <td width="9%" style="font-size: 12px; text-align:Center;font-weight: bold;">FAT(%)</td>
+                                        <td width="9%" style="font-size: 12px; text-align:Center;font-weight: bold;">SNF(%)</td>
+                                        <td width="9%" class="borderLeft" style="font-size: 12px; text-align:right;font-weight: bold;">FAT</td>
+                                        <td width="9%" style="font-size: 12px; text-align:right;font-weight: bold;">SNF</td>
+                                        <td width="10%" class="borderRight" style="font-size: 12px; text-align:right;font-weight: bold;">Milk</td>
+                                        <td width="10%" style="font-size: 12px; text-align:right;font-weight: bold;">FAT(KG)</td>
+                                        <td width="10%" style="font-size: 12px; text-align:right;font-weight: bold;">SNF(KG)</td>
+                                        <td width="10%" class="borderRight" style="font-size: 12px; text-align:right;font-weight: bold;">Milk Price</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                	#foreach($list in $purchaseDetails)
+                                    <tr>
+                                        <td class="borderLeft" style="font-size: 10px;">$list.supplyDate $list.shift</td>
+                                        <td style="font-size: 10px; text-align:Center;">$list.qty</td>
+                                        <td style="font-size: 10px;text-align:Center">$list.fatP $list.fatQuality</td>
+                                        <td style="font-size: 10px;text-align:Center">$list.snfP $list.snfQuality</td>
+                                        <td class="borderLeft" style="font-size: 10px; text-align:right;">$list.fateRate</td>
+                                        <td style="font-size: 10px; text-align:right;">$list.snfRate</td>
+                                        <td class="borderRight" style="font-size: 10px; text-align:right;">$list.milkRate</td>
+                                        <td style="font-size: 10px; text-align:right;">$list.fatAmount</td>
+                                        <td style="font-size: 10px; text-align:right;">$list.snfAmount</td>
+                                        <td class="borderRight" style="font-size: 10px; text-align:right;">$list.milkPrice</td>
+                                    </tr>
+                                    #end
+                                    <tr>
+                                        <th class="borderLeft" style="font-size: 12px; text-align:Center;">Total</th>
+                                        <th style="font-size: 12px; text-align:Center;">$totalQty</th>
+                                        <th colspan="5" style="font-size: 10px; text-align:Center;"></th>
+                                        <th style="font-size: 12px; text-align:right;">$totalFatAmount</th>
+                                        <th style="font-size: 12px; text-align:right;">$totalSnfAmount</th>
+                                        <th class="borderRight" style="font-size: 12px; text-align:right;">$totalMilkPrice</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+        		</tbody>
+        		<tbody>
+        			<td colspan="4" style="padding:0px">
+                    	<table width="100%" cellpadding="0" cellspacing="0">
+		        			<tr>
+		                        <td valign="top" width="50%" style="padding:0px">
+		                            <table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+		                            	<thead>
+		                            		<tr>
+		                            			<td class="borderRight borderLeft" colspan="3" style="font-size: 12px; text-align:Center;"><b>Additions</b></td>
+		                            		</tr>
+		                            	</thead>
+		                            	<tbody>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Commission</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$commissionNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$commissionValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Spl Incentive</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$splIncentiveNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$splIncentiveValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Head Load</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$headLoadNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$headLoadValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Sour Milk</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$sourMilkNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$sourMilkValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Advance</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$addAdvanceNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$addAdvanceValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Testing Eqp</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$testEquipMentNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$testEquipMentValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Late Arrival</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$lateArrivalNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$lateArrivalValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Arrear</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$arrearNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$arrearValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Adjustment</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$adjustmentNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$adjustmentValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;">Others</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$addOthersNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$addOthersValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<td class="borderLeft borderRight" width="25%" style="font-size: 10px; text-align:left;"></td>
+		                            			<th width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">Total Additions</th>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$totalAdditions</td>
+		                            		</tr>
+		                            	</tbody>
+		                            </table>
+		                        </td>
+		                        <td valign="top" width="50%" style="padding:0px">
+		                            <table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+		                            	<thead>
+		                            		<tr>
+		                            			<td class="borderRight" colspan="3" style="font-size: 12px; text-align:Center;"><b>Deductions</b></td>
+		                            		</tr>
+		                            	</thead>
+		                            	<tbody>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">Advance</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$deductAdvanceNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$deductAdvanceValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">Cattle feed</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$cattleFeedNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$cattleFeedValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">MTE</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$MTENarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$MTEValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">Fodder</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$fodderNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$fodderValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">Cow Loan</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$cowLoanNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$cowLoanValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">Vaccine</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$vaccineNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$vaccineValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">Share</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$shareNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$shareValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">Others</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">$deductOthersNarration</td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$deductOthersValue</td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">&nbsp;</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;"></td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;"></td>
+		                            		</tr>
+		                            		<tr>
+		                            			<th width="25%" class="borderRight" style="font-size: 10px; text-align:left;">&nbsp;</th>
+		                            			<td width="45%" class="borderRight" style="font-size: 10px; text-align:Center;"></td>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;"></td>
+		                            		</tr>
+		                            		<tr>
+		                            			<td width="25%" class="borderRight" style="font-size: 10px; text-align:left;"></td>
+		                            			<th width="45%" class="borderRight" style="font-size: 10px; text-align:Center;">Total Deductions</th>
+		                            			<td class="borderRight" width="25%" style="font-size: 10px; text-align:right;">$totalDeductions</td>
+		                            		</tr>
+		                            	</tbody>
+		                            </table>
+		                        </td>
+							</tr>
+						</table>
+					</td>
+        		</tbody>
+        		<tbody>
+        			<tr>
+	        			<td colspan="4" style="padding:0px">
+	                    	<table width="100%" cellpadding="0" cellspacing="0">
+			        			<tr>
+			                        <td valign="top" width="50%" style="padding:0px">
+			                            <table width="100%" cellpadding="0" cellspacing="0" class="table table-condensed">
+			                            	<tr>
+			                            		<td colspan="2" class="borderLeft borderRight"  style="font-size: 10px;"><b>Rupees (In Word): </b>$billTotalAmtToWord</td>
+			                            	</tr>
+			                            	<tr>
+			                            		<td class="borderLeft " style="font-size: 12px;">&nbsp;<!-- FAT(GOOD) : 39.292 KGS --></td>
+			                            		<td class="borderRight" style="font-size: 12px;">&nbsp;<!-- SNF(GOOD) : 89.594 KGS --></td>
+			                            	</tr>
+			                            	<tr>
+			                            		<td class="borderLeft " style="font-size: 12px;">&nbsp;<!-- FAT(Bad) : 39.292 KGS --></td>
+			                            		<td class="borderRight" style="font-size: 12px;">&nbsp;<!-- SNF(Bad) : 89.594 KGS --></td>
+			                            	</tr>
+			                            	<tr>
+			                            		<td colspan="2" class="borderLeft borderRight" style="font-size: 12px;">&nbsp;</td>
+			                            	</tr>
+			                            	<tr>
+			                            		<td colspan="2" class="borderLeft borderRight"  style="font-size: 12px;">&nbsp;</td>
+			                            	</tr>
+			                            </table>
+		                            </td>
+		                            <td valign="top" width="50%" style="padding:0px">
+			                            <table width="100%" cellpadding="0" cellspacing="0" class="table table-condensed">
+			                            	<tr>
+			                            		<th style="font-size: 12px;text-align:left;">Milk Price</th>
+			                            		<th class="borderRight" style="font-size: 11px;text-align:right;">$totalMilkPrice</th>
+			                            	</tr>
+			                            	<tr>
+			                            		<th style="font-size: 12px;text-align:left;">Additions</th>
+			                            		<th class="borderRight borderBottom" style="font-size: 11px;text-align:right;">
+			                            			#if($totalAdditions != '')
+			                            				$totalAdditions
+		                            				#else
+														0.00
+													#end
+	                            				</th>
+			                            	</tr>
+			                            	<tr>
+			                            		<th style="font-size: 12px;text-align:left;">Gross Amount</th>
+			                            		<th class="borderRight" style="font-size: 11px;text-align:right;">
+			                            			$grossAmount
+		                            			</th>
+			                            	</tr>
+			                            	<tr>
+			                            		<th style="font-size: 12px;text-align:left;">Deductions</th>
+			                            		<th class="borderRight" style="font-size: 11px;text-align:right;">
+			                            			#if($totalDeductions != '')
+			                            				$totalDeductions
+		                            				#else
+		                            					0.00
+	                            					#end
+		                            			</th>
+			                            	</tr>
+			                            	<tr>
+			                            		<th style="font-size: 12px;text-align:left;">Bill Total</th>
+			                            		<th class="borderRight" style="font-size: 11px;text-align:right;">$billTotal</th>
+			                            	</tr>
+			                            </table>
+		                            </td>
+	        					</tr>
+	        					<tr>
+	        						<td colspan="2" style="padding:0px">
+	        							<table width="100%" cellpadding="0" cellspacing="0" class="table table-condensed">
+			                            	<tr>
+			                            		<td width="45%" style="font-size: 12px;">Prepared By</td>
+			                            		<td width="40%" style="font-size: 12px;">Checked By</td>
+			                            		<td width="15%" style="font-size: 12px;">Managing Director</td>
+			                            	</tr>
+			                            </table>
+	        						</td>
+	        					</tr>
+	       					</table>
+	        			</td>
+        			</tr>
+        		</tbody>
+        		
+        	</table>
+        </div>
+	</body>
+</html>

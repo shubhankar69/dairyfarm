@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -53,12 +55,12 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 				resJson.put("data", puchaseArr);
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 				resJson.put("data", puchaseArr);
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -78,11 +80,11 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 				resJson.put("data", new JSONParser().parse(jsonStr));
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -107,13 +109,14 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 		resJson = new JSONObject();
 		try {
 			SessionPeriod sessionPeriod = new SessionPeriod();
-			sessionPeriod.setId(sessionId);
+			sessionPeriod.setId(sessionId);			
 			
 			pv.setSessionPeriod(sessionPeriod);
 			pv.setCreatedOn(new Date());
 			
 			for(PurchaseVoucherDetails pvDetails : pv.getPurchaseVoucherDetails()) {
 				pvDetails.setSessionPeriod(sessionPeriod);
+				pvDetails.setCreatedOn(new Date());
 			}
 			
 			purchaseVoucherDA.saveEntityObj(pv);
@@ -122,7 +125,7 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 			resJson.put("data", pv);
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -130,9 +133,41 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 
 	@Override
 	@Transactional
-	public JSONObject updateEntityObj(JSONObject json) {
-		// TODO Auto-generated method stub
-		return null;
+	public JSONObject updateEntityObj(JSONObject purchaseVoucherjson) {
+		resJson = new JSONObject();
+		try {
+			Integer existingPurchaseVoucherId = (Integer) purchaseVoucherjson.get("id");
+			PurchaseVoucher pv = purchaseVoucherDA.getEntityObj(existingPurchaseVoucherId);
+			if(pv != null) {
+				purchaseVoucherDA.deleteEntityObj(pv);
+				
+				mapper = new ObjectMapper();
+				String pvString = mapper.writeValueAsString(purchaseVoucherjson);
+				PurchaseVoucher newPurchaseVoucher = mapper.readValue(pvString, PurchaseVoucher.class);
+				newPurchaseVoucher.setId(null);
+				newPurchaseVoucher.setCreatedOn(new Date());
+				newPurchaseVoucher.setUpdatedOn(new Date());
+				
+				for(PurchaseVoucherDetails pvDetails : newPurchaseVoucher.getPurchaseVoucherDetails()) {
+					pvDetails.setId(null);
+					pvDetails.setCreatedOn(new Date());
+					pvDetails.setUpdatedOn(new Date());
+				}
+				
+				purchaseVoucherDA.saveEntityObj(newPurchaseVoucher);
+				resJson.put("type", "success");
+				resJson.put("msg", "Data Updated Successfully..!!");
+				resJson.put("data", newPurchaseVoucher);
+			}  else {
+				resJson.put("type", "error");
+				resJson.put("msg", "No data found..!!");
+			}
+		} catch(Exception e) {
+			resJson.put("type", "error");
+			resJson.put("msg", "Server error");
+			e.printStackTrace();
+		}
+		return resJson;
 	}
 
 	@Override
@@ -149,11 +184,42 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 				resJson.put("data", pv);
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
+			e.printStackTrace();
+		}
+		return resJson;
+	}
+	
+	@Override
+	@Transactional
+	public JSONObject multiDeleteEntityObj(String ids) {
+		resJson = new JSONObject();
+		try {
+			String[] idArr = ids.split(",");
+			int count = 0;
+			for (String id : idArr) {
+				Integer existingPurchaseVoucherId = Integer.parseInt(id);
+				PurchaseVoucher pv = purchaseVoucherDA.getEntityObj(existingPurchaseVoucherId);
+				if(pv != null) {
+					count++;
+					purchaseVoucherDA.deleteEntityObj(pv);
+				}
+			}
+			if(count > 0) {
+				resJson.put("type", "success");
+				resJson.put("msg", "Data Deleted Successfully..!!");
+				resJson.put("data", new PurchaseVoucher());
+			} else {
+				resJson.put("type", "error");
+				resJson.put("msg", "No data found..!!");
+			}
+		} catch(Exception e) {
+			resJson.put("type", "error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -209,38 +275,49 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 		List<HashMap> purchaseReportArr = new JSONArray();
 		List<PurchaseVoucher> purchaseReportSummList = purchaseVoucherDA.getPurchaseListFromDateToDate(sdf.parse(fromDate), sdf.parse(toDate));
 		LinkedHashSet<String> lhs = new LinkedHashSet<>();
+		LinkedHashSet<String> uniquePartyLhs = new LinkedHashSet<>();
 		for (PurchaseVoucher pvoucher : purchaseReportSummList) {
-			HashMap hm = new HashMap();
-			hm.put("partyName", pvoucher.getPartyMaster() != null ? lhs.add(pvoucher.getPartyMaster().getPartyName()) ? pvoucher.getPartyMaster().getPartyName() : "" : "NA");
-			hm.put("billNo", pvoucher.getBillNo());
-			hm.put("billDate", sdf1.format(pvoucher.getBillDate()));
-			hm.put("totalMilkKg", new BigDecimal(pvoucher.getTotalQty() != null ? pvoucher.getTotalQty() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("totalMilkPrice", new BigDecimal(pvoucher.getTotalMilkprice() != null ? pvoucher.getTotalMilkprice() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("totalKGFat", new BigDecimal(pvoucher.getTotalKgfat() != null ? pvoucher.getTotalKgfat() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("totalKGSnf", new BigDecimal(pvoucher.getTotalKgsnf() != null ? pvoucher.getTotalKgsnf() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("commission", new BigDecimal(pvoucher.getCommissionValue() != null ? pvoucher.getCommissionValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("splIncentive", new BigDecimal(pvoucher.getSplIncentiveValue() != null ? pvoucher.getSplIncentiveValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("headLoad", new BigDecimal(pvoucher.getHeadLoadValue() != null ? pvoucher.getHeadLoadValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("sourMilk", new BigDecimal(pvoucher.getSourMilkValue() != null ? pvoucher.getSourMilkValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("addAdvance", new BigDecimal(pvoucher.getAddAdvanceValue() != null ? pvoucher.getAddAdvanceValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("testEquipMent", new BigDecimal(pvoucher.getTestEquipMentValue() != null ? pvoucher.getTestEquipMentValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("lateArrival", new BigDecimal(pvoucher.getLateArrivalValue() != null ? pvoucher.getLateArrivalValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("arrear", new BigDecimal(pvoucher.getArrearValue() != null ? pvoucher.getArrearValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("adjustment", new BigDecimal(pvoucher.getAdjustmentValue() != null ? pvoucher.getAdjustmentValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("addOthers", new BigDecimal(pvoucher.getAddOthersValue() != null ? pvoucher.getAddOthersValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("deductAdvance", new BigDecimal(pvoucher.getDeductAdvanceValue() != null ? pvoucher.getDeductAdvanceValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("cattleFeed", new BigDecimal(pvoucher.getCattleFeedValue() != null ? pvoucher.getCattleFeedValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("mte", new BigDecimal(pvoucher.getMTEValue() != null ? pvoucher.getMTEValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("fodder", new BigDecimal(pvoucher.getFodderValue() != null ? pvoucher.getFodderValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("cowLoan", new BigDecimal(pvoucher.getCowLoanValue() != null ? pvoucher.getCowLoanValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("vaccine", new BigDecimal(pvoucher.getVaccineValue() != null ? pvoucher.getVaccineValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("share", new BigDecimal(pvoucher.getShareValue() != null ? pvoucher.getShareValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("deductOthers", new BigDecimal(pvoucher.getDeductOthersValue() != null ? pvoucher.getDeductOthersValue() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("totalAdditions", new BigDecimal(pvoucher.getTotalAdditions() != null ? pvoucher.getTotalAdditions() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("totalDeductions", new BigDecimal(pvoucher.getTotalDeductions() != null ? pvoucher.getTotalDeductions() : 0).setScale(2, RoundingMode.HALF_UP));
-			hm.put("billTotal", new BigDecimal(pvoucher.getBillTotal() != null ? pvoucher.getBillTotal() : 0).setScale(2, RoundingMode.HALF_UP));
-			purchaseReportArr.add(hm);
+			uniquePartyLhs.add(pvoucher.getPartyMaster().getPartyName());
 		}
+		ArrayList<String> uniquePartyNameList = new ArrayList<>(uniquePartyLhs);
+		Collections.sort(uniquePartyNameList);
+		for (String partyName : uniquePartyNameList) {
+			for (PurchaseVoucher pvoucher : purchaseReportSummList) {
+				if(partyName.equalsIgnoreCase(pvoucher.getPartyMaster().getPartyName())) {
+					HashMap hm = new HashMap();
+					hm.put("partyName", pvoucher.getPartyMaster() != null ? lhs.add(pvoucher.getPartyMaster().getPartyName()) ? pvoucher.getPartyMaster().getPartyName() : "" : "NA");
+					hm.put("billNo", pvoucher.getBillNo());
+					hm.put("billDate", sdf1.format(pvoucher.getBillDate()));
+					hm.put("totalMilkKg", new BigDecimal(pvoucher.getTotalQty() != null ? pvoucher.getTotalQty() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("totalMilkPrice", new BigDecimal(pvoucher.getTotalMilkprice() != null ? pvoucher.getTotalMilkprice() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("totalKGFat", new BigDecimal(pvoucher.getTotalKgfat() != null ? pvoucher.getTotalKgfat() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("totalKGSnf", new BigDecimal(pvoucher.getTotalKgsnf() != null ? pvoucher.getTotalKgsnf() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("commission", new BigDecimal(pvoucher.getCommissionValue() != null ? pvoucher.getCommissionValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("splIncentive", new BigDecimal(pvoucher.getSplIncentiveValue() != null ? pvoucher.getSplIncentiveValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("headLoad", new BigDecimal(pvoucher.getHeadLoadValue() != null ? pvoucher.getHeadLoadValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("sourMilk", new BigDecimal(pvoucher.getSourMilkValue() != null ? pvoucher.getSourMilkValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("addAdvance", new BigDecimal(pvoucher.getAddAdvanceValue() != null ? pvoucher.getAddAdvanceValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("testEquipMent", new BigDecimal(pvoucher.getTestEquipMentValue() != null ? pvoucher.getTestEquipMentValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("lateArrival", new BigDecimal(pvoucher.getLateArrivalValue() != null ? pvoucher.getLateArrivalValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("arrear", new BigDecimal(pvoucher.getArrearValue() != null ? pvoucher.getArrearValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("adjustment", new BigDecimal(pvoucher.getAdjustmentValue() != null ? pvoucher.getAdjustmentValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("addOthers", new BigDecimal(pvoucher.getAddOthersValue() != null ? pvoucher.getAddOthersValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("deductAdvance", new BigDecimal(pvoucher.getDeductAdvanceValue() != null ? pvoucher.getDeductAdvanceValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("cattleFeed", new BigDecimal(pvoucher.getCattleFeedValue() != null ? pvoucher.getCattleFeedValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("mte", new BigDecimal(pvoucher.getMTEValue() != null ? pvoucher.getMTEValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("fodder", new BigDecimal(pvoucher.getFodderValue() != null ? pvoucher.getFodderValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("cowLoan", new BigDecimal(pvoucher.getCowLoanValue() != null ? pvoucher.getCowLoanValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("vaccine", new BigDecimal(pvoucher.getVaccineValue() != null ? pvoucher.getVaccineValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("share", new BigDecimal(pvoucher.getShareValue() != null ? pvoucher.getShareValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("deductOthers", new BigDecimal(pvoucher.getDeductOthersValue() != null ? pvoucher.getDeductOthersValue() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("totalAdditions", new BigDecimal(pvoucher.getTotalAdditions() != null ? pvoucher.getTotalAdditions() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("totalDeductions", new BigDecimal(pvoucher.getTotalDeductions() != null ? pvoucher.getTotalDeductions() : 0).setScale(2, RoundingMode.HALF_UP));
+					hm.put("billTotal", new BigDecimal(pvoucher.getBillTotal() != null ? pvoucher.getBillTotal() : 0).setScale(2, RoundingMode.HALF_UP));
+					purchaseReportArr.add(hm);
+				}
+			}
+		}
+		
 		return purchaseReportArr;
 	}
 	
@@ -304,12 +381,12 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 				resJson.put("data", pvList);
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 				resJson.put("data", pvList);
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -328,12 +405,12 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 				resJson.put("data", pvList);
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 				resJson.put("data", pvList);
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;

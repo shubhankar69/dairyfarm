@@ -25,4 +25,6 @@ public interface PurchaseVoucherService<E> extends CommonService<E> {
 	public List<HashMap> getPurchaseReportDetailsBy(String partyIds, String fromDate, String toDate) throws ParseException;
 	
 	public JSONObject saveEntityPurchaseObj(PurchaseVoucher pv, Integer sessionId);
+	
+	public JSONObject multiDeleteEntityObj(String ids);
 }

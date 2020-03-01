@@ -128,6 +128,9 @@ public class PurchaseVoucher implements Serializable {
 	@Column(name = "headLoadValue")
 	private Double headLoadValue;
 	
+	@Column(name = "headLoadCalVal")
+	private Double headLoadCalVal;
+	
 	@Column(name = "headLoadNarration")
 	private String headLoadNarration;
 	
@@ -289,6 +292,8 @@ public class PurchaseVoucher implements Serializable {
 	
 	@Column(name = "notes")
 	private String notes;
+	
+	
 	
 	public Integer getId() {
 		return id;
@@ -796,5 +801,12 @@ public class PurchaseVoucher implements Serializable {
 	}
 	public void setNotes(String notes) {
 		this.notes = notes;
+	}
+	
+	public Double getHeadLoadCalVal() {
+		return headLoadCalVal;
+	}
+	public void setHeadLoadCalVal(Double headLoadCalVal) {
+		this.headLoadCalVal = headLoadCalVal;
 	}
 }

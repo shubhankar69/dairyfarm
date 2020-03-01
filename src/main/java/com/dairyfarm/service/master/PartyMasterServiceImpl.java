@@ -61,12 +61,12 @@ public class PartyMasterServiceImpl implements CommonService<PartyMaster> {
 				resJson.put("data", partyarr);
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 				resJson.put("data", partyarr);
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -86,11 +86,11 @@ public class PartyMasterServiceImpl implements CommonService<PartyMaster> {
 				resJson.put("data", new JSONParser().parse(jsonStr));
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -116,7 +116,7 @@ public class PartyMasterServiceImpl implements CommonService<PartyMaster> {
 			resJson.put("data", party);
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -166,11 +166,11 @@ public class PartyMasterServiceImpl implements CommonService<PartyMaster> {
 				resJson.put("data", partymasterObj);
 			} else {
 				resJson.put("type", "error");
-				resJson.put("msg", "no data found");
+				resJson.put("msg", "No data found..!!");
 			}
 		} catch (Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;
@@ -200,7 +200,7 @@ public class PartyMasterServiceImpl implements CommonService<PartyMaster> {
 					resJson.put("data", existingPartyObj);
 				} else {
 					resJson.put("type", "error");
-					resJson.put("msg", "no data found");
+					resJson.put("msg", "No data found..!!");
 				}
 			} else {
 				resJson.put("type", "error");
@@ -208,7 +208,7 @@ public class PartyMasterServiceImpl implements CommonService<PartyMaster> {
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
-			resJson.put("msg", "server error");
+			resJson.put("msg", "Server error");
 			e.printStackTrace();
 		}
 		return resJson;

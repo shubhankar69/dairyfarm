@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dairyfarm.entity.txn.PurchaseVoucher;
+import com.dairyfarm.entity.txn.PurchaseVoucherDetails;
 
 @Repository
 @Qualifier("purchaseVoucherDA")
@@ -44,12 +45,19 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	
 	@Override
 	public void updateEntityObj(PurchaseVoucher e) {
+		
 	}
 	
 	@Override
 	public void deleteEntityObj(PurchaseVoucher pv) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
 		currentSession.delete(pv);
+	}
+	
+	@Override
+	public void deletePVDetailsObj(PurchaseVoucherDetails pvDetails) {
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		currentSession.delete(pvDetails);
 	}
 	
 	@Override
@@ -69,7 +77,7 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	@Override
 	public List<PurchaseVoucher> getPurchaseListFromDateToDate(Date fromDate, Date toDate) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
-		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where billDate between :fDate and :tDate", PurchaseVoucher.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where periodFromDate >= :fDate and periodToDate <= :tDate", PurchaseVoucher.class);
 		theQuery.setParameter("fDate", fromDate);
 		theQuery.setParameter("tDate", toDate);
 		return theQuery.getResultList();
@@ -88,7 +96,7 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	@Override
 	public List<PurchaseVoucher> getPurchaseListByPartyIdFromDateToDate(Integer partyId, Date fromDate, Date toDate) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
-		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where partyId = :partyId and billDate between :fDate and :tDate", PurchaseVoucher.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where partyId = :partyId and periodFromDate >= :fDate and periodToDate <= :tDate", PurchaseVoucher.class);
 		theQuery.setParameter("partyId", partyId);
 		theQuery.setParameter("fDate", fromDate);
 		theQuery.setParameter("tDate", toDate);
@@ -120,7 +128,7 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 			"from dairyfarm.purchase_voucher pv " + 
 			"INNER JOIN dairyfarm.party_master p " + 
 			"ON pv.partyId = p.id " + 
-			"where (pv.billDate between ?1 and ?2) " + 
+			"where (pv.periodFromDate >= ?1 and pv.periodToDate <= ?2) " + 
 			"group by pv.partyId " + 
 			"order by p.partyName";
 		Query q = currentSession.createNativeQuery(purchaseSummQuery);

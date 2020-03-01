@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.dairyfarm.da.master.CommonDA;
+import com.dairyfarm.entity.txn.PurchaseVoucherDetails;
 
 public interface PurchaseVoucherDA<E> extends CommonDA<E> {
 
@@ -19,4 +20,6 @@ public interface PurchaseVoucherDA<E> extends CommonDA<E> {
 	
 	@SuppressWarnings("rawtypes")
 	public List getPurchaseReportSummary(Date fromDate, Date toDate);
+	
+	public void deletePVDetailsObj(PurchaseVoucherDetails pvDetails);
 }

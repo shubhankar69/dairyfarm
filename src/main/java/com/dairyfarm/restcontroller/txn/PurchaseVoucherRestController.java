@@ -55,8 +55,18 @@ public class PurchaseVoucherRestController {
 		return pvService.saveEntityPurchaseObj(pv, sessionId);
 	}
 	
+	@PostMapping("/update")
+	public JSONObject updatePurchaseVoucher(@RequestBody JSONObject purchaseVoucherjson) {
+		return pvService.updateEntityObj(purchaseVoucherjson);
+	}
+	
 	@PostMapping("/delete")
 	public JSONObject deletePurchaseVoucher(@RequestBody JSONObject pv) {
 		return pvService.deleteEntityObj(pv);
+	}
+	
+	@PostMapping("/multidelete/{ids}")
+	public JSONObject multiDeletePurchaseVoucher(@PathVariable String ids) {
+		return pvService.multiDeleteEntityObj(ids);
 	}
 }

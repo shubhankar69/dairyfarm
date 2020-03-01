@@ -23,16 +23,16 @@ public class ReactController {
 	public String indexHtml(@ModelAttribute("sessionObj") SessionPeriod session, HttpSession sessionObj) {
 		Integer sessionId = Integer.parseInt(sessionObj.getAttribute("sessionId") != null ? sessionObj.getAttribute("sessionId").toString() : "0");
 		if(session == null) {
-			return "/index";
+			return "index";
 		} else if(sessionId > 0) {
 			return "reactindex";
 		} else if(session.getId() == null) {
-			return "/index";
+			return "index";
 		} else if(session.getId() > 0) {
 			sessionObj.setAttribute("sessionId", session.getId());
 			return "reactindex";
 		}  else {
-			return "/index";
+			return "index";
 		}
 	}
 	
