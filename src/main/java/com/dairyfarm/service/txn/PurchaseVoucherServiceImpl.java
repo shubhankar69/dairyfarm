@@ -65,6 +65,35 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 		}
 		return resJson;
 	}
+	
+	@Override
+	@Transactional
+	public JSONObject getAllListofData(Integer sessionID) {
+		mapper = new ObjectMapper();
+		resJson = new JSONObject();
+		JSONArray puchaseArr = new JSONArray();
+		try {
+			List<PurchaseVoucher> pvList = purchaseVoucherDA.getEntityObjList(sessionID);
+			if(pvList != null && !pvList.isEmpty()) {
+				for(PurchaseVoucher pvObj : pvList) {
+					String bankjsonString = mapper.writeValueAsString(pvObj);
+					puchaseArr.add(new JSONParser().parse(bankjsonString));
+				}
+				resJson.put("type", "success");
+				resJson.put("msg", "success");
+				resJson.put("data", puchaseArr);
+			} else {
+				resJson.put("type", "error");
+				resJson.put("msg", "No data found..!!");
+				resJson.put("data", puchaseArr);
+			}
+		} catch(Exception e) {
+			resJson.put("type", "error");
+			resJson.put("msg", "Server error");
+			e.printStackTrace();
+		}
+		return resJson;
+	}
 
 	@Override
 	@Transactional
@@ -95,6 +124,12 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 	public PurchaseVoucher getPurchaseVoucherObj(int theId) {
 		return purchaseVoucherDA.getEntityObj(theId);
 	}
+	
+	@Override
+	@Transactional
+	public Integer getMaxBillno(Integer sessionId) {
+		return purchaseVoucherDA.getMaxBillNo(sessionId);
+	}
 
 	@Override
 	@Transactional
@@ -108,15 +143,22 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 	public JSONObject saveEntityPurchaseObj(PurchaseVoucher pv, Integer sessionId) {
 		resJson = new JSONObject();
 		try {
+			Integer maxId = purchaseVoucherDA.getMaxSerialId();
+			Integer billNo = purchaseVoucherDA.getMaxBillNo(sessionId);
+			
 			SessionPeriod sessionPeriod = new SessionPeriod();
-			sessionPeriod.setId(sessionId);			
+			sessionPeriod.setId(sessionId);
 			
 			pv.setSessionPeriod(sessionPeriod);
 			pv.setCreatedOn(new Date());
+			pv.setsId(maxId+1);
+			pv.setBillNo(billNo+1);
 			
 			for(PurchaseVoucherDetails pvDetails : pv.getPurchaseVoucherDetails()) {
-				pvDetails.setSessionPeriod(sessionPeriod);
-				pvDetails.setCreatedOn(new Date());
+				if(pvDetails != null) {
+					pvDetails.setSessionPeriod(sessionPeriod);
+					pvDetails.setCreatedOn(new Date());
+				}
 			}
 			
 			purchaseVoucherDA.saveEntityObj(pv);
@@ -149,9 +191,11 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 				newPurchaseVoucher.setUpdatedOn(new Date());
 				
 				for(PurchaseVoucherDetails pvDetails : newPurchaseVoucher.getPurchaseVoucherDetails()) {
-					pvDetails.setId(null);
-					pvDetails.setCreatedOn(new Date());
-					pvDetails.setUpdatedOn(new Date());
+					if(pvDetails != null) {
+						pvDetails.setId(null);
+						pvDetails.setCreatedOn(new Date());
+						pvDetails.setUpdatedOn(new Date());
+					}
 				}
 				
 				purchaseVoucherDA.saveEntityObj(newPurchaseVoucher);
@@ -202,11 +246,13 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 			String[] idArr = ids.split(",");
 			int count = 0;
 			for (String id : idArr) {
-				Integer existingPurchaseVoucherId = Integer.parseInt(id);
-				PurchaseVoucher pv = purchaseVoucherDA.getEntityObj(existingPurchaseVoucherId);
-				if(pv != null) {
-					count++;
-					purchaseVoucherDA.deleteEntityObj(pv);
+				if(!id.equalsIgnoreCase("")) {
+					Integer existingPurchaseVoucherId = Integer.parseInt(id);
+					PurchaseVoucher pv = purchaseVoucherDA.getEntityObj(existingPurchaseVoucherId);
+					if(pv != null) {
+						count++;
+						purchaseVoucherDA.deleteEntityObj(pv);
+					}
 				}
 			}
 			if(count > 0) {

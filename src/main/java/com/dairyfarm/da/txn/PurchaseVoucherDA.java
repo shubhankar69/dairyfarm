@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.dairyfarm.da.master.CommonDA;
+import com.dairyfarm.entity.txn.PurchaseVoucher;
 import com.dairyfarm.entity.txn.PurchaseVoucherDetails;
 
 public interface PurchaseVoucherDA<E> extends CommonDA<E> {
@@ -22,4 +23,10 @@ public interface PurchaseVoucherDA<E> extends CommonDA<E> {
 	public List getPurchaseReportSummary(Date fromDate, Date toDate);
 	
 	public void deletePVDetailsObj(PurchaseVoucherDetails pvDetails);
+
+	public Integer getMaxSerialId();
+
+	public Integer getMaxBillNo(Integer sessionId);
+
+	public List<PurchaseVoucher> getEntityObjList(Integer sessionId);
 }

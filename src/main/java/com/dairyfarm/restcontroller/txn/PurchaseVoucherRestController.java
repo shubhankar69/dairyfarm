@@ -28,19 +28,23 @@ public class PurchaseVoucherRestController {
 	private PurchaseVoucherService<PurchaseVoucher> pvService;
 
 	@GetMapping("/fetch/all")
-	public JSONObject getAllPurchaseVoucherList() {
-		return pvService.getAllListofData();
+	public JSONObject getAllPurchaseVoucherList(HttpSession session) {
+		Integer sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
+//		Integer sessionId = 11;
+		return pvService.getAllListofData(sessionId);
 	}
 	
 	@GetMapping("/fetch/{sessionId}/{frmDate}/{toDate}")
 	public JSONObject getAllPurchaseVoucherList(@PathVariable(name = "sessionId") Integer sessionId, @PathVariable(name = "frmDate") String fdate, @PathVariable(name = "toDate") String tdate, HttpSession session) throws ParseException {
 		sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
+//		sessionId = 11;
 		return pvService.getPurchaseListBy(sessionId, fdate, tdate);
 	}
 	
 	@GetMapping("/fetch/{sessionId}/{partyId}/{frmDate}/{toDate}")
 	public JSONObject getAllPurchaseVoucherList(@PathVariable(name = "sessionId") Integer sessionId, @PathVariable(name = "partyId") Integer partyId, @PathVariable(name = "frmDate") String fdate, @PathVariable(name = "toDate") String tdate, HttpSession session) throws ParseException {
 		sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
+//		sessionId = 11;
 		return pvService.getPurchaseListBy(sessionId, partyId, fdate, tdate);
 	}
 	
@@ -49,9 +53,17 @@ public class PurchaseVoucherRestController {
 		return pvService.getJsonObj(id);
 	}
 	
+	@GetMapping("/getmaxbillno")
+	public Integer getMaxBillno(HttpSession session) {
+		Integer sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
+//		Integer sessionId = 11;
+		return pvService.getMaxBillno(sessionId);
+	}
+	
 	@PostMapping("/create")
 	public JSONObject createPurchaseVoucher(@RequestBody PurchaseVoucher pv, HttpSession session) {
 		Integer sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
+//		Integer sessionId = 11;
 		return pvService.saveEntityPurchaseObj(pv, sessionId);
 	}
 	

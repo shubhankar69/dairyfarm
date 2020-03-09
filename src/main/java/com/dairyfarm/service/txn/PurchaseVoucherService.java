@@ -27,4 +27,8 @@ public interface PurchaseVoucherService<E> extends CommonService<E> {
 	public JSONObject saveEntityPurchaseObj(PurchaseVoucher pv, Integer sessionId);
 	
 	public JSONObject multiDeleteEntityObj(String ids);
+
+	public Integer getMaxBillno(Integer sessionId);
+
+	public JSONObject getAllListofData(Integer sessionID);
 }

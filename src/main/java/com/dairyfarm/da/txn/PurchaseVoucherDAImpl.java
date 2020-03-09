@@ -11,10 +11,10 @@ import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-
 import com.dairyfarm.entity.txn.PurchaseVoucher;
 import com.dairyfarm.entity.txn.PurchaseVoucherDetails;
 
+@SuppressWarnings("rawtypes")
 @Repository
 @Qualifier("purchaseVoucherDA")
 public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher> {
@@ -26,6 +26,14 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	public List<PurchaseVoucher> getEntityObjList() {
 		Session currentSession = sessionFactory.unwrap(Session.class);
 		Query<PurchaseVoucher> theQuery = currentSession.createNamedQuery("PurchaseVoucher.findByAll", PurchaseVoucher.class);
+		return theQuery.getResultList();
+	}
+	
+	@Override
+	public List<PurchaseVoucher> getEntityObjList(Integer sessionId) {
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createNamedQuery("PurchaseVoucher.findBySessionId", PurchaseVoucher.class);
+		theQuery.setParameter("sessionId", sessionId);
 		return theQuery.getResultList();
 	}
 	
@@ -86,7 +94,7 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	@Override
 	public List<PurchaseVoucher> getPurchaseListFromDateToDate(Integer sessionId, Date fromDate, Date toDate) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
-		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and billDate between :fDate and :tDate", PurchaseVoucher.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and billDate between :fDate and :tDate order by sId", PurchaseVoucher.class);
 		theQuery.setParameter("sessionId", sessionId);
 		theQuery.setParameter("fDate", fromDate);
 		theQuery.setParameter("tDate", toDate);
@@ -106,15 +114,14 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	@Override
 	public List<PurchaseVoucher> getPurchaseListByPartyIdFromDateToDate(Integer sessionId, Integer partyId, Date fromDate, Date toDate) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
-		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and partyId = :partyId and billDate between :fDate and :tDate", PurchaseVoucher.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and partyId = :partyId and billDate between :fDate and :tDate order by sId", PurchaseVoucher.class);
 		theQuery.setParameter("sessionId", sessionId);
 		theQuery.setParameter("partyId", partyId);
 		theQuery.setParameter("fDate", fromDate);
 		theQuery.setParameter("tDate", toDate);
 		return theQuery.getResultList();
-	}
+	}	
 	
-	@SuppressWarnings("rawtypes")
 	@Override
 	public List getPurchaseReportSummary(Date fromDate, Date toDate) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
@@ -137,4 +144,32 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 		return q.getResultList();
 	}
 	
+	@Override
+	public Integer getMaxSerialId() {
+		Integer no = 0;
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		Query theQuery = currentSession.createNativeQuery("select max(sId) from dairyfarm.purchase_voucher");
+		List maxl1 = theQuery.getResultList();
+		if(maxl1 != null && !maxl1.isEmpty()) {
+			if(maxl1.get(0) != null) {
+				no = Integer.parseInt(maxl1.get(0).toString());
+			}
+		}
+		return no;
+	}
+	
+	@Override
+	public Integer getMaxBillNo(Integer sessionId) {
+		Integer no = 0;
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		Query theQuery = currentSession.createNativeQuery("select max(billNo) from dairyfarm.purchase_voucher where sessionId = ?");
+		theQuery.setParameter(1, sessionId);
+		List maxl1 = theQuery.getResultList();
+		if(maxl1 != null && !maxl1.isEmpty()) {
+			if(maxl1.get(0) != null) {
+				no = Integer.parseInt(maxl1.get(0).toString());
+			}
+		}
+		return no;
+	}
 }

@@ -25,6 +25,7 @@ import com.dairyfarm.entity.master.SessionPeriod;
 @Entity
 @NamedQueries({
 	@NamedQuery(name = "PurchaseVoucher.findByAll", query = "from PurchaseVoucher order by id"),
+	@NamedQuery(name = "PurchaseVoucher.findBySessionId", query = "from PurchaseVoucher where sessionId = :sessionId order by sId desc"),
     @NamedQuery(name = "PurchaseVoucher.findById", query = "from PurchaseVoucher where id = :id"),
 	@NamedQuery(name = "PurchaseVoucher.findByPartyId", query = "from PurchaseVoucher where partyId = :partyId")
 })
@@ -39,7 +40,10 @@ public class PurchaseVoucher implements Serializable {
 	private Integer id;
 	
 	@Column(name = "billNo")
-	private int billNo;
+	private Integer billNo;
+	
+	@Column(name = "sId")
+	private Integer sId;
 	
 	@Column(name = "billDate")
 	private Date billDate;
@@ -304,7 +308,7 @@ public class PurchaseVoucher implements Serializable {
 	public int getBillNo() {
 		return billNo;
 	}
-	public void setBillNo(int billNo) {
+	public void setBillNo(Integer billNo) {
 		this.billNo = billNo;
 	}
 	public Date getBillDate() {
@@ -808,5 +812,12 @@ public class PurchaseVoucher implements Serializable {
 	}
 	public void setHeadLoadCalVal(Double headLoadCalVal) {
 		this.headLoadCalVal = headLoadCalVal;
+	}
+	
+	public Integer getsId() {
+		return sId;
+	}
+	public void setsId(Integer sId) {
+		this.sId = sId;
 	}
 }
