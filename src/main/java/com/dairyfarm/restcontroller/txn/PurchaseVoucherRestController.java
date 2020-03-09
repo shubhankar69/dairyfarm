@@ -30,7 +30,7 @@ public class PurchaseVoucherRestController {
 	@GetMapping("/fetch/all")
 	public JSONObject getAllPurchaseVoucherList(HttpSession session) {
 		Integer sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
-//		Integer sessionId = 11;
+//		Integer sessionId = 1;
 		return pvService.getAllListofData(sessionId);
 	}
 	
@@ -44,8 +44,15 @@ public class PurchaseVoucherRestController {
 	@GetMapping("/fetch/{sessionId}/{partyId}/{frmDate}/{toDate}")
 	public JSONObject getAllPurchaseVoucherList(@PathVariable(name = "sessionId") Integer sessionId, @PathVariable(name = "partyId") Integer partyId, @PathVariable(name = "frmDate") String fdate, @PathVariable(name = "toDate") String tdate, HttpSession session) throws ParseException {
 		sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
-//		sessionId = 11;
+//		sessionId = 1;
 		return pvService.getPurchaseListBy(sessionId, partyId, fdate, tdate);
+	}
+	
+	@GetMapping("/fetchbybillno/{billNo}")
+	public JSONObject getPurchaseVoucherByBillNo(@PathVariable(name = "billNo") Integer billNo, HttpSession session) throws ParseException {
+		Integer sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
+//		Integer sessionId = 1;
+		return pvService.getPurchaseVoucherBy(sessionId, billNo);
 	}
 	
 	@GetMapping("/fetch/{id}")
@@ -56,14 +63,14 @@ public class PurchaseVoucherRestController {
 	@GetMapping("/getmaxbillno")
 	public Integer getMaxBillno(HttpSession session) {
 		Integer sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
-//		Integer sessionId = 11;
+//		Integer sessionId = 1;
 		return pvService.getMaxBillno(sessionId);
 	}
 	
 	@PostMapping("/create")
 	public JSONObject createPurchaseVoucher(@RequestBody PurchaseVoucher pv, HttpSession session) {
 		Integer sessionId = Integer.parseInt(session.getAttribute("sessionId").toString());
-//		Integer sessionId = 11;
+//		Integer sessionId = 1;
 		return pvService.saveEntityPurchaseObj(pv, sessionId);
 	}
 	

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.dairyfarm.da.master.CommonDA;
 import com.dairyfarm.entity.master.SessionPeriod;
+import com.dairyfarm.entity.settings.SessionWiseLastBill;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -27,6 +28,9 @@ public class SessionServiceImpl implements CommonService<SessionPeriod> {
 	@Autowired
 	@Qualifier("sessionDA")
 	private CommonDA<SessionPeriod> sessionDA;
+	@Autowired
+	@Qualifier("sessionWiseLastBillDA")
+	private CommonDA<SessionWiseLastBill> lastBillDA;
 	private ObjectMapper mapper;
 	private JSONObject resJson;
 	
@@ -112,6 +116,12 @@ public class SessionServiceImpl implements CommonService<SessionPeriod> {
 		        session.setStatus(1);
 				session.setCreatedOn(new Date());
 				sessionDA.saveEntityObj(session);
+				
+				//persisting SessionWiseLastBill
+				SessionWiseLastBill lastbill = new SessionWiseLastBill();
+				lastbill.setSessionId(session.getId());
+				lastbill.setLastBillNo(0);
+				lastBillDA.saveEntityObj(lastbill);
 				
 				resJson.put("type", "success");
 				resJson.put("msg", "Data Saved Successfully..!!");

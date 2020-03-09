@@ -19,8 +19,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dairyfarm.da.settings.SessionWiseLastBillDA;
 import com.dairyfarm.da.txn.PurchaseVoucherDA;
 import com.dairyfarm.entity.master.SessionPeriod;
+import com.dairyfarm.entity.settings.SessionWiseLastBill;
 import com.dairyfarm.entity.txn.PurchaseVoucher;
 import com.dairyfarm.entity.txn.PurchaseVoucherDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +35,10 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 	@Autowired
 	@Qualifier("purchaseVoucherDA")
 	private PurchaseVoucherDA<PurchaseVoucher> purchaseVoucherDA;
+	
+	@Autowired
+	@Qualifier("sessionWiseLastBillDA")
+	private SessionWiseLastBillDA<SessionWiseLastBill> billNoDA;
 	
 	private ObjectMapper mapper;
 	private JSONObject resJson;
@@ -128,7 +134,7 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 	@Override
 	@Transactional
 	public Integer getMaxBillno(Integer sessionId) {
-		return purchaseVoucherDA.getMaxBillNo(sessionId);
+		return billNoDA.getLastBillNo(sessionId);
 	}
 
 	@Override
@@ -144,7 +150,7 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 		resJson = new JSONObject();
 		try {
 			Integer maxId = purchaseVoucherDA.getMaxSerialId();
-			Integer billNo = purchaseVoucherDA.getMaxBillNo(sessionId);
+			Integer billNo = billNoDA.getLastBillNo(sessionId);
 			
 			SessionPeriod sessionPeriod = new SessionPeriod();
 			sessionPeriod.setId(sessionId);
@@ -161,10 +167,26 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 				}
 			}
 			
-			purchaseVoucherDA.saveEntityObj(pv);
-			resJson.put("type", "success");
-			resJson.put("msg", "Data Saved Successfully..!!");
-			resJson.put("data", pv);
+			// updating last bill no Session Wise
+			List<SessionWiseLastBill> sessionBillObj = billNoDA.getSessionLassBillObjBy(sessionId);
+			if(sessionBillObj != null && !sessionBillObj.isEmpty()) {
+				if(sessionBillObj.get(0) != null) {
+					SessionWiseLastBill sessionWiseLastBill = sessionBillObj.get(0);
+					sessionWiseLastBill.setLastBillNo(billNo+1);
+					billNoDA.updateEntityObj(sessionWiseLastBill);
+					
+					purchaseVoucherDA.saveEntityObj(pv);
+					resJson.put("type", "success");
+					resJson.put("msg", "Data Saved Successfully..!!");
+					resJson.put("data", pv);
+				} else {
+					resJson.put("type", "error");
+					resJson.put("msg", "Data not saved..!!");
+				}
+			} else {
+				resJson.put("type", "error");
+				resJson.put("msg", "Data not saved..!!");
+			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
 			resJson.put("msg", "Server error");
@@ -258,7 +280,7 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 			if(count > 0) {
 				resJson.put("type", "success");
 				resJson.put("msg", "Data Deleted Successfully..!!");
-				resJson.put("data", new PurchaseVoucher());
+				resJson.put("data", "");
 			} else {
 				resJson.put("type", "error");
 				resJson.put("msg", "No data found..!!");
@@ -428,7 +450,7 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 			} else {
 				resJson.put("type", "error");
 				resJson.put("msg", "No data found..!!");
-				resJson.put("data", pvList);
+				resJson.put("data", "");
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");
@@ -452,7 +474,32 @@ public class PurchaseVoucherServiceImpl implements PurchaseVoucherService<Purcha
 			} else {
 				resJson.put("type", "error");
 				resJson.put("msg", "No data found..!!");
-				resJson.put("data", pvList);
+				resJson.put("data", "");
+			}
+		} catch(Exception e) {
+			resJson.put("type", "error");
+			resJson.put("msg", "Server error");
+			e.printStackTrace();
+		}
+		return resJson;
+	}
+	
+	@Override
+	@Transactional
+	public JSONObject getPurchaseVoucherBy(Integer sessionId, Integer billno) throws ParseException {
+		resJson = new JSONObject();
+		try {
+			List<PurchaseVoucher> pvList = purchaseVoucherDA.getPurchaseVoucherByBillno(sessionId, billno);
+			if(pvList != null && !pvList.isEmpty()) {
+				if(pvList.get(0) != null) {
+					resJson.put("type", "success");
+					resJson.put("msg", "success");
+					resJson.put("data", pvList.get(0));
+				}
+			} else {
+				resJson.put("type", "error");
+				resJson.put("msg", "No data found..!!");
+				resJson.put("data", "");
 			}
 		} catch(Exception e) {
 			resJson.put("type", "error");

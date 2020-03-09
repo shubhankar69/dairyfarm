@@ -120,7 +120,16 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 		theQuery.setParameter("fDate", fromDate);
 		theQuery.setParameter("tDate", toDate);
 		return theQuery.getResultList();
-	}	
+	}
+	
+	@Override
+	public List<PurchaseVoucher> getPurchaseVoucherByBillno(Integer sessionId, Integer billNo) {
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and billNo = :billNo", PurchaseVoucher.class);
+		theQuery.setParameter("sessionId", sessionId);
+		theQuery.setParameter("billNo", billNo);
+		return theQuery.getResultList();
+	}
 	
 	@Override
 	public List getPurchaseReportSummary(Date fromDate, Date toDate) {
@@ -149,21 +158,6 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 		Integer no = 0;
 		Session currentSession = sessionFactory.unwrap(Session.class);
 		Query theQuery = currentSession.createNativeQuery("select max(sId) from dairyfarm.purchase_voucher");
-		List maxl1 = theQuery.getResultList();
-		if(maxl1 != null && !maxl1.isEmpty()) {
-			if(maxl1.get(0) != null) {
-				no = Integer.parseInt(maxl1.get(0).toString());
-			}
-		}
-		return no;
-	}
-	
-	@Override
-	public Integer getMaxBillNo(Integer sessionId) {
-		Integer no = 0;
-		Session currentSession = sessionFactory.unwrap(Session.class);
-		Query theQuery = currentSession.createNativeQuery("select max(billNo) from dairyfarm.purchase_voucher where sessionId = ?");
-		theQuery.setParameter(1, sessionId);
 		List maxl1 = theQuery.getResultList();
 		if(maxl1 != null && !maxl1.isEmpty()) {
 			if(maxl1.get(0) != null) {

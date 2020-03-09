@@ -20,6 +20,8 @@ public interface PurchaseVoucherService<E> extends CommonService<E> {
 	
 	public JSONObject getPurchaseListBy(Integer sessionId, Integer partyId, String fromDate, String toDate) throws ParseException;
 	
+	public JSONObject getPurchaseVoucherBy(Integer sessionId, Integer billno) throws ParseException;
+	
 	public List<HashMap> getPurchaseReportDetailsBy(String fromDate, String toDate) throws ParseException;
 	
 	public List<HashMap> getPurchaseReportDetailsBy(String partyIds, String fromDate, String toDate) throws ParseException;
