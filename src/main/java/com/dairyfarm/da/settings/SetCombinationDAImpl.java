@@ -43,10 +43,8 @@ public class SetCombinationDAImpl implements CommonDA<SetCombination> {
 
 	@Override
 	public void updateEntityObj(SetCombination combo) {
-		System.err.println("hello");
 		Session currentSession = sessionFactory.unwrap(Session.class);
 		currentSession.update(combo);
-		System.err.println("dg");
 	}
 
 	@Override

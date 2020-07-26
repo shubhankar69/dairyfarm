@@ -3,13 +3,32 @@
         <title>Purchase Summary Report</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        ##<link rel="stylesheet" type="text/css" href="../src/main/resources/static/css/bootstrap3.4.0.css"/>
-        <link rel="stylesheet" type="text/css" href="../webapps/dairyfarm/WEB-INF/classes/static/css/bootstrap3.4.0.css"/>
         <style>
+        	html {
+			  font-family: sans-serif;
+			  -ms-text-size-adjust: 100%;
+			  -webkit-text-size-adjust: 100%;
+			}
+			body {
+			  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+			  font-size: 14px;
+			  line-height: 1.42857143;
+			  color: #333333;
+			  background-color: #fff;
+			}
+        	.container {
+				padding-right: 15px;
+				padding-left: 15px;
+				margin-right: auto;
+				margin-left: auto;
+			}
             @page {
                 size: landscape;
                 margin: 15;
                 @bottom-center {
+                    font-size: 10px;
+					color: #333333;
+ 					background-color: #fff;
                     content: "Page " counter(page) " of " counter(pages);
                 }
             }
@@ -36,17 +55,181 @@
             .table {
             	margin-bottom: 0px; 
             }
+            .table th,
+			.table td {
+			  padding: 0.75rem;
+			  vertical-align: top;
+			  border-top: 1px solid #eceeef;
+			}
+			
+			.table thead th {
+			  vertical-align: bottom;
+			  border-bottom: 2px solid #eceeef;
+			}
+			
+			.table tbody + tbody {
+			  border-top: 2px solid #eceeef;
+			}
+			
+			.table .table {
+			  background-color: #fff;
+			}
+			
+			.table-sm th,
+			.table-sm td {
+			  padding: 0.3rem;
+			}
+			
+			.table-bordered {
+			  border: 1px solid #eceeef;
+			}
+			
+			.table-bordered th,
+			.table-bordered td {
+			  border: 1px solid #eceeef;
+			}
+			
+			.table-bordered thead th,
+			.table-bordered thead td {
+			  border-bottom-width: 2px;
+			}
+			
+			.table-striped tbody tr:nth-of-type(odd) {
+			  background-color: rgba(0, 0, 0, 0.05);
+			}
+			
+			.table-hover tbody tr:hover {
+			  background-color: rgba(0, 0, 0, 0.075);
+			}
+			
+			.table-active,
+			.table-active > th,
+			.table-active > td {
+			  background-color: rgba(0, 0, 0, 0.075);
+			}
+			
+			.table-hover .table-active:hover {
+			  background-color: rgba(0, 0, 0, 0.075);
+			}
+			
+			.table-hover .table-active:hover > td,
+			.table-hover .table-active:hover > th {
+			  background-color: rgba(0, 0, 0, 0.075);
+			}
+			
+			.table-success,
+			.table-success > th,
+			.table-success > td {
+			  background-color: #dff0d8;
+			}
+			
+			.table-hover .table-success:hover {
+			  background-color: #d0e9c6;
+			}
+			
+			.table-hover .table-success:hover > td,
+			.table-hover .table-success:hover > th {
+			  background-color: #d0e9c6;
+			}
+			
+			.table-info,
+			.table-info > th,
+			.table-info > td {
+			  background-color: #d9edf7;
+			}
+			
+			.table-hover .table-info:hover {
+			  background-color: #c4e3f3;
+			}
+			
+			.table-hover .table-info:hover > td,
+			.table-hover .table-info:hover > th {
+			  background-color: #c4e3f3;
+			}
+			
+			.table-warning,
+			.table-warning > th,
+			.table-warning > td {
+			  background-color: #fcf8e3;
+			}
+			
+			.table-hover .table-warning:hover {
+			  background-color: #faf2cc;
+			}
+			
+			.table-hover .table-warning:hover > td,
+			.table-hover .table-warning:hover > th {
+			  background-color: #faf2cc;
+			}
+			
+			.table-danger,
+			.table-danger > th,
+			.table-danger > td {
+			  background-color: #f2dede;
+			}
+			
+			.table-hover .table-danger:hover {
+			  background-color: #ebcccc;
+			}
+			
+			.table-hover .table-danger:hover > td,
+			.table-hover .table-danger:hover > th {
+			  background-color: #ebcccc;
+			}
+			
+			.thead-inverse th {
+			  color: #fff;
+			  background-color: #292b2c;
+			}
+			
+			.thead-default th {
+			  color: #464a4c;
+			  background-color: #eceeef;
+			}
+			
+			.table-inverse {
+			  color: #fff;
+			  background-color: #292b2c;
+			}
+			
+			.table-inverse th,
+			.table-inverse td,
+			.table-inverse thead th {
+			  border-color: #fff;
+			}
+			
+			.table-inverse.table-bordered {
+			  border: 0;
+			}
+			
+			.table-responsive {
+			  display: block;
+			  width: 100%;
+			  overflow-x: auto;
+			  -ms-overflow-style: -ms-autohiding-scrollbar;
+			}
+
+			.table-responsive.table-bordered {
+			  border: 0;
+			}
             .table-condensed>tbody>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>thead>tr>th {
             	padding : 2px;
             }
+            .pagebreak {
+		        clear: both;
+		        page-break-before: always;
+			}
+			.hideBorder {
+				border-top: 1px solid #FFFFFF !important;
+			}
         </style>
     </head>
     <body>
         <div class="container">
-        	<table width="100%" cellpadding="0" cellspacing="0" class="table table-striped table-condensed">
+        	<table width="100%" cellpadding="0" cellspacing="0" class="table table-condensed">
         		<thead>
         			<tr>
-        				<td colspan="3" style="font-size: 18px;font-weight:bold;text-align:center;"><i>Office of the Managing Directing</i></td>
+        				<td colspan="3" class="hideBorder" style="font-size: 18px;font-weight:bold;text-align:center;"><i>Office of the Managing Directing</i></td>
         			</tr>
         			<tr>
         				<td colspan="3" class="borderLeft borderRight" style="font-size: 18px;font-weight: bold;text-align:center;">Mayurakshi Co-operative Milk Producers' Union Ltd.. Birbhum</td>
@@ -130,7 +313,7 @@
 	                                	#set($allTotalShare = $allTotalShare + $list.share)
 	                                	#set($allTotalDeductOthers = $allTotalDeductOthers + $list.deductOthers)
 	                                	#set($allTotalAddition = $allTotalAddition + $list.totalAdditions)
-	                                	#set($allTotalDeduction = $allTotalDeduction + $list.totalAdditions)
+	                                	#set($allTotalDeduction = $allTotalDeduction + $list.totalDeductions)
 	                                	#set($grandBillTotal = $grandBillTotal + $list.billTotal)
 	                                    <tr>
 	                                        <td class="borderLeft" style="font-size: 10px;">$list.partyName</td>

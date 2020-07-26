@@ -1,5 +1,7 @@
 package com.dairyfarm.restcontroller.master;
 
+import javax.servlet.http.HttpSession;
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,6 +39,11 @@ public class SessionRestController {
 	@GetMapping("/fetch/{id}")
 	public JSONObject getSessionById(@PathVariable int id) {
 		return sessionService.getJsonObj(id);
+	}
+	
+	@GetMapping("/fetch/activesession")
+	public Integer getActiveSession(HttpSession session) {
+		return Integer.parseInt(session.getAttribute("sessionId") != null ? session.getAttribute("sessionId").toString() : "0");
 	}
 	
 	@PostMapping("/create")

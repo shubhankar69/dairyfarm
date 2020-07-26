@@ -27,6 +27,7 @@ import com.dairyfarm.entity.master.SessionPeriod;
 	@NamedQuery(name = "PurchaseVoucher.findByAll", query = "from PurchaseVoucher order by id"),
 	@NamedQuery(name = "PurchaseVoucher.findBySessionId", query = "from PurchaseVoucher where sessionId = :sessionId order by sId desc"),
     @NamedQuery(name = "PurchaseVoucher.findById", query = "from PurchaseVoucher where id = :id"),
+    @NamedQuery(name = "PurchaseVoucher.findByIds", query = "from PurchaseVoucher where id in :ids"),
 	@NamedQuery(name = "PurchaseVoucher.findByPartyId", query = "from PurchaseVoucher where partyId = :partyId")
 })
 

@@ -46,6 +46,14 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	}
 	
 	@Override
+	public List<PurchaseVoucher> getEntityObjs(List<Integer> ids) {
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		Query<PurchaseVoucher> q = currentSession.createNamedQuery("PurchaseVoucher.findByIds", PurchaseVoucher.class);
+		q.setParameter("ids", ids);
+		return q.getResultList();
+	}
+	
+	@Override
 	public void saveEntityObj(PurchaseVoucher pv) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
 		currentSession.save(pv);
@@ -102,10 +110,10 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 	}
 	
 	@Override
-	public List<PurchaseVoucher> getPurchaseListByPartyIdFromDateToDate(Integer partyId, Date fromDate, Date toDate) {
+	public List<PurchaseVoucher> getPurchaseListPeriodFromDateToDate(Integer sessionId, Date fromDate, Date toDate) {
 		Session currentSession = sessionFactory.unwrap(Session.class);
-		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where partyId = :partyId and periodFromDate >= :fDate and periodToDate <= :tDate", PurchaseVoucher.class);
-		theQuery.setParameter("partyId", partyId);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and periodFromDate >= :fDate and periodToDate <= :tDate order by sId", PurchaseVoucher.class);
+		theQuery.setParameter("sessionId", sessionId);
 		theQuery.setParameter("fDate", fromDate);
 		theQuery.setParameter("tDate", toDate);
 		return theQuery.getResultList();
@@ -116,6 +124,27 @@ public class PurchaseVoucherDAImpl implements PurchaseVoucherDA<PurchaseVoucher>
 		Session currentSession = sessionFactory.unwrap(Session.class);
 		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and partyId = :partyId and billDate between :fDate and :tDate order by sId", PurchaseVoucher.class);
 		theQuery.setParameter("sessionId", sessionId);
+		theQuery.setParameter("partyId", partyId);
+		theQuery.setParameter("fDate", fromDate);
+		theQuery.setParameter("tDate", toDate);
+		return theQuery.getResultList();
+	}
+	
+	@Override
+	public List<PurchaseVoucher> getPurchaseListByPartyIdPeriodFromDateToDate(Integer sessionId, Integer partyId, Date fromDate, Date toDate) {
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where sessionId = :sessionId and partyId = :partyId and periodFromDate >= :fDate and periodToDate <= :tDate order by sId", PurchaseVoucher.class);
+		theQuery.setParameter("sessionId", sessionId);
+		theQuery.setParameter("partyId", partyId);
+		theQuery.setParameter("fDate", fromDate);
+		theQuery.setParameter("tDate", toDate);
+		return theQuery.getResultList();
+	}
+	
+	@Override
+	public List<PurchaseVoucher> getPurchaseListByPartyIdFromDateToDate(Integer partyId, Date fromDate, Date toDate) {
+		Session currentSession = sessionFactory.unwrap(Session.class);
+		Query<PurchaseVoucher> theQuery = currentSession.createQuery("from PurchaseVoucher where partyId = :partyId and periodFromDate >= :fDate and periodToDate <= :tDate", PurchaseVoucher.class);
 		theQuery.setParameter("partyId", partyId);
 		theQuery.setParameter("fDate", fromDate);
 		theQuery.setParameter("tDate", toDate);

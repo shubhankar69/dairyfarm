@@ -6,6 +6,9 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -44,15 +47,22 @@ public class GenerateInvoice {
 //	public static final String LOGOPATH = "C:\\Users\\sdutt\\OneDrive\\Desktop\\Itext7PdfHtml\\Source\\anmol_logo.jpg/";
 //	public static final String TARGET = "C:\\Users\\sdutt\\OneDrive\\Desktop\\Itext7PdfHtml/Destination\\";
 //	public static final String DEST = String.format("%svmDemoHTML1.pdf", TARGET);
-	
+
 	@Autowired
 	@Qualifier("purchaseVoucherService")
 	private PurchaseVoucherService<PurchaseVoucher> purchaseVoucherDA;
 	private SimpleDateFormat ddMMyyyy = null;
 	private AmountToWordConverter amountToWord = null;
-	
+
 	public static final String BASEURI = "reports\\";
 
+	/**
+	 * single invoice print
+	 * 
+	 * @param id
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/print/{id}", method = RequestMethod.GET, produces = "application/pdf")
 	public ResponseEntity<byte[]> getInvoicePDF(@PathVariable(name = "id") Integer id) throws IOException {
 		ResponseEntity<byte[]> response = null;
@@ -73,7 +83,14 @@ public class GenerateInvoice {
 		}
 		return response;
 	}
-	
+
+	/**
+	 * multiple invoice print
+	 * 
+	 * @param ids
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/multiprint/{ids}", method = RequestMethod.GET, produces = "application/pdf")
 	public ResponseEntity<byte[]> getMultiInvoicePDF(@PathVariable(name = "ids") String ids) throws IOException {
 		ResponseEntity<byte[]> response = null;
@@ -88,11 +105,25 @@ public class GenerateInvoice {
 			headers.add("Pragma", "no-cache");
 			headers.add("Expires", "0");
 
-			response = new ResponseEntity<>(multipleGeneratePdf(ids), headers, HttpStatus.OK);
+			byte[] pdfInvoiceByteArr = multipleGeneratePdf(ids);
+			response = new ResponseEntity<>(pdfInvoiceByteArr, headers, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return response;
+	}
+
+	/**
+	 * sorting purchase voucher details data date wise
+	 * 
+	 * @param pv
+	 */
+	private void sortPurchaseVoucherDataDateWise(PurchaseVoucher pv) {
+		Collections.sort(pv.getPurchaseVoucherDetails(), new Comparator<PurchaseVoucherDetails>() {
+			public int compare(PurchaseVoucherDetails pvd1, PurchaseVoucherDetails pvd2) {
+				return pvd1.getDate().compareTo(pvd2.getDate());
+			}
+		});
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -105,24 +136,30 @@ public class GenerateInvoice {
 //        Properties prop = new Properties();
 //        prop.put("file.resource.loader.path", BASEURI);
 //        engine.init(prop);
-		
-        ddMMyyyy = new SimpleDateFormat("dd-MM-yyyy");
-        amountToWord = new AmountToWordConverter();
+
+		ddMMyyyy = new SimpleDateFormat("dd-MM-yyyy");
+		amountToWord = new AmountToWordConverter();
 
 		VelocityEngine engine = new VelocityEngine();
 		engine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
 		engine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
 		engine.init();
-		
+
 		VelocityContext context = new VelocityContext();
 		List<HashMap> purchaseDetailsArr = new JSONArray();
 		PurchaseVoucher pv = purchaseVoucherDA.getPurchaseVoucherObj(theId);
-		if(pv != null) {
-			BigDecimal totalMilkPrice = pv.getTotalMilkprice() != null ? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
-			BigDecimal totalAdditions = pv.getTotalAdditions() != null ? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+		if (pv != null) {
+			BigDecimal totalMilkPrice = pv.getTotalMilkprice() != null
+					? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP)
+					: BigDecimal.ZERO;
+			BigDecimal totalAdditions = pv.getTotalAdditions() != null
+					? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP)
+					: BigDecimal.ZERO;
 			BigDecimal grossAmount = totalMilkPrice.add(totalAdditions).setScale(2, RoundingMode.HALF_UP);
-			BigDecimal billTotal = pv.getBillTotal() != null ? new BigDecimal(pv.getBillTotal()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
-			
+			BigDecimal billTotal = pv.getBillTotal() != null
+					? new BigDecimal(pv.getBillTotal()).setScale(2, RoundingMode.HALF_UP)
+					: BigDecimal.ZERO;
+
 			context.put("billNo", pv.getBillNo());
 			context.put("billDate", ddMMyyyy.format(pv.getBillDate()));
 			context.put("periodFromDate", ddMMyyyy.format(pv.getPeriodFromDate()));
@@ -131,85 +168,194 @@ public class GenerateInvoice {
 			context.put("partyAddress", pv.getPartyMaster().getAddress());
 			context.put("plantName", pv.getPartyMaster().getPlantName());
 			context.put("accNo", pv.getPartyMaster().getPartyBankAccNo());
-			context.put("totalQty", pv.getTotalQty() != null ? new BigDecimal(pv.getTotalQty()).setScale(3, RoundingMode.HALF_UP) : "");
-			context.put("totalFatAmount", pv.getTotalFatAmount() != null ? new BigDecimal(pv.getTotalFatAmount()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("totalSnfAmount", pv.getTotalSnfAmount() != null ? new BigDecimal(pv.getTotalSnfAmount()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("totalMilkPrice", pv.getTotalMilkprice() != null ? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("totalQty",
+					pv.getTotalQty() != null ? new BigDecimal(pv.getTotalQty()).setScale(3, RoundingMode.HALF_UP) : "");
+			context.put("totalFatAmount",
+					pv.getTotalFatAmount() != null
+							? new BigDecimal(pv.getTotalFatAmount()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("totalSnfAmount",
+					pv.getTotalSnfAmount() != null
+							? new BigDecimal(pv.getTotalSnfAmount()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("totalMilkPrice",
+					pv.getTotalMilkprice() != null
+							? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("commissionNarration", pv.getCommissionNarration() != null ? pv.getCommissionNarration() : "");
-			context.put("commissionValue", pv.getCommissionValue() != null ? new BigDecimal(pv.getCommissionValue()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("splIncentiveNarration", pv.getSplIncentiveNarration() != null ? pv.getSplIncentiveNarration() : "");
-			context.put("splIncentiveValue", pv.getSplIncentiveValue() != null ? new BigDecimal(pv.getSplIncentiveValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("commissionValue",
+					pv.getCommissionValue() != null
+							? new BigDecimal(pv.getCommissionValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("splIncentiveNarration",
+					pv.getSplIncentiveNarration() != null ? pv.getSplIncentiveNarration() : "");
+			context.put("splIncentiveValue",
+					pv.getSplIncentiveValue() != null
+							? new BigDecimal(pv.getSplIncentiveValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("headLoadNarration", pv.getHeadLoadNarration() != null ? pv.getHeadLoadNarration() : "");
-			context.put("headLoadValue", pv.getHeadLoadValue() != null ? new BigDecimal(pv.getHeadLoadValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("headLoadValue",
+					pv.getHeadLoadValue() != null
+							? new BigDecimal(pv.getHeadLoadValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("sourMilkNarration", pv.getSourMilkNarration() != null ? pv.getSourMilkNarration() : "");
-			context.put("sourMilkValue", pv.getSourMilkValue() != null ? new BigDecimal(pv.getSourMilkValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("sourMilkValue",
+					pv.getSourMilkValue() != null
+							? new BigDecimal(pv.getSourMilkValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("addAdvanceNarration", pv.getAddAdvanceNarration() != null ? pv.getAddAdvanceNarration() : "");
-			context.put("addAdvanceValue", pv.getAddAdvanceValue() != null ? new BigDecimal(pv.getAddAdvanceValue()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("testEquipMentNarration", pv.getTestEquipMentNarration() != null ? pv.getTestEquipMentNarration() : "");
-			context.put("testEquipMentValue", pv.getTestEquipMentValue() != null ? new BigDecimal(pv.getTestEquipMentValue()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("lateArrivalNarration", pv.getLateArrivalNarration() != null ? pv.getLateArrivalNarration() : "");
-			context.put("lateArrivalValue", pv.getLateArrivalValue() != null ? new BigDecimal(pv.getLateArrivalValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("addAdvanceValue",
+					pv.getAddAdvanceValue() != null
+							? new BigDecimal(pv.getAddAdvanceValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("testEquipMentNarration",
+					pv.getTestEquipMentNarration() != null ? pv.getTestEquipMentNarration() : "");
+			context.put("testEquipMentValue",
+					pv.getTestEquipMentValue() != null
+							? new BigDecimal(pv.getTestEquipMentValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("lateArrivalNarration",
+					pv.getLateArrivalNarration() != null ? pv.getLateArrivalNarration() : "");
+			context.put("lateArrivalValue",
+					pv.getLateArrivalValue() != null
+							? new BigDecimal(pv.getLateArrivalValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("arrearNarration", pv.getArrearNarration() != null ? pv.getArrearNarration() : "");
-			context.put("arrearValue", pv.getArrearValue() != null ? new BigDecimal(pv.getArrearValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("arrearValue",
+					pv.getArrearValue() != null ? new BigDecimal(pv.getArrearValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("adjustmentNarration", pv.getAdjustmentNarration() != null ? pv.getAdjustmentNarration() : "");
-			context.put("adjustmentValue", pv.getAdjustmentValue() != null ? new BigDecimal(pv.getAdjustmentValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("adjustmentValue",
+					pv.getAdjustmentValue() != null
+							? new BigDecimal(pv.getAdjustmentValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("addOthersNarration", pv.getAddOthersNarration() != null ? pv.getAddOthersNarration() : "");
-			context.put("addOthersValue", pv.getAddOthersValue() != null ? new BigDecimal(pv.getAddOthersValue()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("totalAdditions", pv.getTotalAdditions() != null ? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("deductAdvanceNarration", pv.getDeductAdvanceNarration() != null ? pv.getDeductAdvanceNarration() : "");
-			context.put("deductAdvanceValue", pv.getDeductAdvanceValue() != null ? new BigDecimal(pv.getDeductAdvanceValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("addOthersValue",
+					pv.getAddOthersValue() != null
+							? new BigDecimal(pv.getAddOthersValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("totalAdditions",
+					pv.getTotalAdditions() != null
+							? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("deductAdvanceNarration",
+					pv.getDeductAdvanceNarration() != null ? pv.getDeductAdvanceNarration() : "");
+			context.put("deductAdvanceValue",
+					pv.getDeductAdvanceValue() != null
+							? new BigDecimal(pv.getDeductAdvanceValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("cattleFeedNarration", pv.getCattleFeedNarration() != null ? pv.getCattleFeedNarration() : "");
-			context.put("cattleFeedValue", pv.getCattleFeedValue() != null ? new BigDecimal(pv.getCattleFeedValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("cattleFeedValue",
+					pv.getCattleFeedValue() != null
+							? new BigDecimal(pv.getCattleFeedValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("MTENarration", pv.getMTENarration() != null ? pv.getMTENarration() : "");
-			context.put("MTEValue", pv.getMTEValue() != null ? new BigDecimal(pv.getMTEValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("MTEValue",
+					pv.getMTEValue() != null ? new BigDecimal(pv.getMTEValue()).setScale(2, RoundingMode.HALF_UP) : "");
 			context.put("fodderNarration", pv.getFodderNarration() != null ? pv.getFodderNarration() : "");
-			context.put("fodderValue", pv.getFodderValue() != null ? new BigDecimal(pv.getFodderValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("fodderValue",
+					pv.getFodderValue() != null ? new BigDecimal(pv.getFodderValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("cowLoanNarration", pv.getCowLoanNarration() != null ? pv.getCowLoanNarration() : "");
-			context.put("cowLoanValue", pv.getCowLoanValue() != null ? new BigDecimal(pv.getCowLoanValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("cowLoanValue",
+					pv.getCowLoanValue() != null
+							? new BigDecimal(pv.getCowLoanValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("vaccineNarration", pv.getVaccineNarration() != null ? pv.getVaccineNarration() : "");
-			context.put("vaccineValue", pv.getVaccineValue() != null ? new BigDecimal(pv.getVaccineValue()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("vaccineValue",
+					pv.getVaccineValue() != null
+							? new BigDecimal(pv.getVaccineValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("shareNarration", pv.getShareNarration() != null ? pv.getShareNarration() : "");
-			context.put("shareValue", pv.getShareValue() != null ? new BigDecimal(pv.getShareValue()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("deductOthersNarration", pv.getDeductOthersNarration() != null ? pv.getDeductOthersNarration() : "");
-			context.put("deductOthersValue", pv.getDeductOthersValue() != null ? new BigDecimal(pv.getDeductOthersValue()).setScale(2, RoundingMode.HALF_UP) : "");
-			context.put("totalDeductions", pv.getTotalDeductions() != null ? new BigDecimal(pv.getTotalDeductions()).setScale(2, RoundingMode.HALF_UP) : "");
+			context.put("shareValue",
+					pv.getShareValue() != null ? new BigDecimal(pv.getShareValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("deductOthersNarration",
+					pv.getDeductOthersNarration() != null ? pv.getDeductOthersNarration() : "");
+			context.put("deductOthersValue",
+					pv.getDeductOthersValue() != null
+							? new BigDecimal(pv.getDeductOthersValue()).setScale(2, RoundingMode.HALF_UP)
+							: "");
+			context.put("totalDeductions",
+					pv.getTotalDeductions() != null
+							? new BigDecimal(pv.getTotalDeductions()).setScale(2, RoundingMode.HALF_UP)
+							: "");
 			context.put("grossAmount", grossAmount);
 			context.put("billTotal", billTotal);
 			context.put("billTotalAmtToWord", amountToWord.convertToIndianCurrency(billTotal.toString()));
-			
+
+			// sorting purchase voucher details data date wise
+			this.sortPurchaseVoucherDataDateWise(pv);
+
 			for (PurchaseVoucherDetails pvDeatilsObj : pv.getPurchaseVoucherDetails()) {
 				HashMap map = new HashMap();
 				map.put("supplyDate", ddMMyyyy.format(pvDeatilsObj.getDate()));
-				map.put("qty", pvDeatilsObj.getQty() != null ? new BigDecimal(pvDeatilsObj.getQty()).setScale(3, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-				map.put("shift", pvDeatilsObj.getShift() != null && !pvDeatilsObj.getShift().trim().equalsIgnoreCase("") ? pvDeatilsObj.getShift().charAt(0) : "");
-				map.put("fatP", pvDeatilsObj.getFatP() != null ? new BigDecimal(pvDeatilsObj.getFatP()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+				map.put("qty",
+						pvDeatilsObj.getQty() != null
+								? new BigDecimal(pvDeatilsObj.getQty()).setScale(3, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
+				map.put("shift",
+						pvDeatilsObj.getShift() != null && !pvDeatilsObj.getShift().trim().equalsIgnoreCase("")
+								? pvDeatilsObj.getShift().charAt(0)
+								: "");
+				map.put("fatP",
+						pvDeatilsObj.getFatP() != null
+								? new BigDecimal(pvDeatilsObj.getFatP()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
 				map.put("fatQuality", pvDeatilsObj.getFatQuality() != null ? pvDeatilsObj.getFatQuality() : "");
-				map.put("snfP", pvDeatilsObj.getSnfP() != null ? new BigDecimal(pvDeatilsObj.getSnfP()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+				map.put("snfP",
+						pvDeatilsObj.getSnfP() != null
+								? new BigDecimal(pvDeatilsObj.getSnfP()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
 				map.put("snfQuality", pvDeatilsObj.getSnfQuality() != null ? pvDeatilsObj.getSnfQuality() : "");
-				map.put("fateRate", pvDeatilsObj.getFatRate() != null ? new BigDecimal(pvDeatilsObj.getFatRate()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-				map.put("snfRate", pvDeatilsObj.getSnfRate() != null ? new BigDecimal(pvDeatilsObj.getSnfRate()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-				map.put("milkRate", pvDeatilsObj.getMilkRate() != null ? new BigDecimal(pvDeatilsObj.getMilkRate()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-				map.put("fatAmount", pvDeatilsObj.getFatAmount() != null ? new BigDecimal(pvDeatilsObj.getFatAmount()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-				map.put("snfAmount", pvDeatilsObj.getSnfAmount() != null ? new BigDecimal(pvDeatilsObj.getSnfAmount()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-				map.put("milkPrice", pvDeatilsObj.getMilkPrice() != null ? new BigDecimal(pvDeatilsObj.getMilkPrice()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+				map.put("fateRate",
+						pvDeatilsObj.getFatRate() != null
+								? new BigDecimal(pvDeatilsObj.getFatRate()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
+				map.put("snfRate",
+						pvDeatilsObj.getSnfRate() != null
+								? new BigDecimal(pvDeatilsObj.getSnfRate()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
+				map.put("milkRate",
+						pvDeatilsObj.getMilkRate() != null
+								? new BigDecimal(pvDeatilsObj.getMilkRate()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
+				map.put("fatAmount",
+						pvDeatilsObj.getFatAmount() != null
+								? new BigDecimal(pvDeatilsObj.getFatAmount()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
+				map.put("snfAmount",
+						pvDeatilsObj.getSnfAmount() != null
+								? new BigDecimal(pvDeatilsObj.getSnfAmount()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
+				map.put("milkPrice",
+						pvDeatilsObj.getMilkPrice() != null
+								? new BigDecimal(pvDeatilsObj.getMilkPrice()).setScale(2, RoundingMode.HALF_UP)
+								: BigDecimal.ZERO);
 				purchaseDetailsArr.add(map);
 			}
-			
+
 			context.put("purchaseDetails", purchaseDetailsArr);
 		}
-		
+
 		StringWriter writer = new StringWriter();
 		Template template = engine.getTemplate("reports/purchaseInvoice.vm");
 		template.merge(context, writer);
-		
+
 		return createPdf(BASEURI, writer.toString());
 	}
-	
+
+	/**
+	 * 
+	 * @param ids
+	 * @return
+	 * @throws IOException
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public byte[] multipleGeneratePdf(String ids) throws IOException {
-		
-        ddMMyyyy = new SimpleDateFormat("dd-MM-yyyy");
-        amountToWord = new AmountToWordConverter();
+
+		ddMMyyyy = new SimpleDateFormat("dd-MM-yyyy");
+		amountToWord = new AmountToWordConverter();
 
 		VelocityEngine engine = new VelocityEngine();
 		engine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
@@ -219,17 +365,23 @@ public class GenerateInvoice {
 		String[] idArr = ids.split(",");
 		int count = 0;
 		for (String id : idArr) {
-			if(!id.equalsIgnoreCase("")) {
+			if (!id.equalsIgnoreCase("")) {
 				count++;
 				VelocityContext context = new VelocityContext();
 				List<HashMap> purchaseDetailsArr = new JSONArray();
 				PurchaseVoucher pv = purchaseVoucherDA.getPurchaseVoucherObj(Integer.parseInt(id));
-				if(pv != null) {
-					BigDecimal totalMilkPrice = pv.getTotalMilkprice() != null ? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
-					BigDecimal totalAdditions = pv.getTotalAdditions() != null ? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+				if (pv != null) {
+					BigDecimal totalMilkPrice = pv.getTotalMilkprice() != null
+							? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP)
+							: BigDecimal.ZERO;
+					BigDecimal totalAdditions = pv.getTotalAdditions() != null
+							? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP)
+							: BigDecimal.ZERO;
 					BigDecimal grossAmount = totalMilkPrice.add(totalAdditions).setScale(2, RoundingMode.HALF_UP);
-					BigDecimal billTotal = pv.getBillTotal() != null ? new BigDecimal(pv.getBillTotal()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
-					
+					BigDecimal billTotal = pv.getBillTotal() != null
+							? new BigDecimal(pv.getBillTotal()).setScale(2, RoundingMode.HALF_UP)
+							: BigDecimal.ZERO;
+
 					context.put("billNo", pv.getBillNo());
 					context.put("billDate", ddMMyyyy.format(pv.getBillDate()));
 					context.put("periodFromDate", ddMMyyyy.format(pv.getPeriodFromDate()));
@@ -238,86 +390,453 @@ public class GenerateInvoice {
 					context.put("partyAddress", pv.getPartyMaster().getAddress());
 					context.put("plantName", pv.getPartyMaster().getPlantName());
 					context.put("accNo", pv.getPartyMaster().getPartyBankAccNo());
-					context.put("totalQty", pv.getTotalQty() != null ? new BigDecimal(pv.getTotalQty()).setScale(3, RoundingMode.HALF_UP) : "");
-					context.put("totalFatAmount", pv.getTotalFatAmount() != null ? new BigDecimal(pv.getTotalFatAmount()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("totalSnfAmount", pv.getTotalSnfAmount() != null ? new BigDecimal(pv.getTotalSnfAmount()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("totalMilkPrice", pv.getTotalMilkprice() != null ? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("commissionNarration", pv.getCommissionNarration() != null ? pv.getCommissionNarration() : "");
-					context.put("commissionValue", pv.getCommissionValue() != null ? new BigDecimal(pv.getCommissionValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("splIncentiveNarration", pv.getSplIncentiveNarration() != null ? pv.getSplIncentiveNarration() : "");
-					context.put("splIncentiveValue", pv.getSplIncentiveValue() != null ? new BigDecimal(pv.getSplIncentiveValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("headLoadNarration", pv.getHeadLoadNarration() != null ? pv.getHeadLoadNarration() : "");
-					context.put("headLoadValue", pv.getHeadLoadValue() != null ? new BigDecimal(pv.getHeadLoadValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("sourMilkNarration", pv.getSourMilkNarration() != null ? pv.getSourMilkNarration() : "");
-					context.put("sourMilkValue", pv.getSourMilkValue() != null ? new BigDecimal(pv.getSourMilkValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("addAdvanceNarration", pv.getAddAdvanceNarration() != null ? pv.getAddAdvanceNarration() : "");
-					context.put("addAdvanceValue", pv.getAddAdvanceValue() != null ? new BigDecimal(pv.getAddAdvanceValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("testEquipMentNarration", pv.getTestEquipMentNarration() != null ? pv.getTestEquipMentNarration() : "");
-					context.put("testEquipMentValue", pv.getTestEquipMentValue() != null ? new BigDecimal(pv.getTestEquipMentValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("lateArrivalNarration", pv.getLateArrivalNarration() != null ? pv.getLateArrivalNarration() : "");
-					context.put("lateArrivalValue", pv.getLateArrivalValue() != null ? new BigDecimal(pv.getLateArrivalValue()).setScale(2, RoundingMode.HALF_UP) : "");
+					context.put("totalQty",
+							pv.getTotalQty() != null
+									? new BigDecimal(pv.getTotalQty()).setScale(3, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalFatAmount",
+							pv.getTotalFatAmount() != null
+									? new BigDecimal(pv.getTotalFatAmount()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalSnfAmount",
+							pv.getTotalSnfAmount() != null
+									? new BigDecimal(pv.getTotalSnfAmount()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalMilkPrice",
+							pv.getTotalMilkprice() != null
+									? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("commissionNarration",
+							pv.getCommissionNarration() != null ? pv.getCommissionNarration() : "");
+					context.put("commissionValue",
+							pv.getCommissionValue() != null
+									? new BigDecimal(pv.getCommissionValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("splIncentiveNarration",
+							pv.getSplIncentiveNarration() != null ? pv.getSplIncentiveNarration() : "");
+					context.put("splIncentiveValue",
+							pv.getSplIncentiveValue() != null
+									? new BigDecimal(pv.getSplIncentiveValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("headLoadNarration",
+							pv.getHeadLoadNarration() != null ? pv.getHeadLoadNarration() : "");
+					context.put("headLoadValue",
+							pv.getHeadLoadValue() != null
+									? new BigDecimal(pv.getHeadLoadValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("sourMilkNarration",
+							pv.getSourMilkNarration() != null ? pv.getSourMilkNarration() : "");
+					context.put("sourMilkValue",
+							pv.getSourMilkValue() != null
+									? new BigDecimal(pv.getSourMilkValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("addAdvanceNarration",
+							pv.getAddAdvanceNarration() != null ? pv.getAddAdvanceNarration() : "");
+					context.put("addAdvanceValue",
+							pv.getAddAdvanceValue() != null
+									? new BigDecimal(pv.getAddAdvanceValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("testEquipMentNarration",
+							pv.getTestEquipMentNarration() != null ? pv.getTestEquipMentNarration() : "");
+					context.put("testEquipMentValue",
+							pv.getTestEquipMentValue() != null
+									? new BigDecimal(pv.getTestEquipMentValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("lateArrivalNarration",
+							pv.getLateArrivalNarration() != null ? pv.getLateArrivalNarration() : "");
+					context.put("lateArrivalValue",
+							pv.getLateArrivalValue() != null
+									? new BigDecimal(pv.getLateArrivalValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
 					context.put("arrearNarration", pv.getArrearNarration() != null ? pv.getArrearNarration() : "");
-					context.put("arrearValue", pv.getArrearValue() != null ? new BigDecimal(pv.getArrearValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("adjustmentNarration", pv.getAdjustmentNarration() != null ? pv.getAdjustmentNarration() : "");
-					context.put("adjustmentValue", pv.getAdjustmentValue() != null ? new BigDecimal(pv.getAdjustmentValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("addOthersNarration", pv.getAddOthersNarration() != null ? pv.getAddOthersNarration() : "");
-					context.put("addOthersValue", pv.getAddOthersValue() != null ? new BigDecimal(pv.getAddOthersValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("totalAdditions", pv.getTotalAdditions() != null ? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("deductAdvanceNarration", pv.getDeductAdvanceNarration() != null ? pv.getDeductAdvanceNarration() : "");
-					context.put("deductAdvanceValue", pv.getDeductAdvanceValue() != null ? new BigDecimal(pv.getDeductAdvanceValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("cattleFeedNarration", pv.getCattleFeedNarration() != null ? pv.getCattleFeedNarration() : "");
-					context.put("cattleFeedValue", pv.getCattleFeedValue() != null ? new BigDecimal(pv.getCattleFeedValue()).setScale(2, RoundingMode.HALF_UP) : "");
+					context.put("arrearValue",
+							pv.getArrearValue() != null
+									? new BigDecimal(pv.getArrearValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("adjustmentNarration",
+							pv.getAdjustmentNarration() != null ? pv.getAdjustmentNarration() : "");
+					context.put("adjustmentValue",
+							pv.getAdjustmentValue() != null
+									? new BigDecimal(pv.getAdjustmentValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("addOthersNarration",
+							pv.getAddOthersNarration() != null ? pv.getAddOthersNarration() : "");
+					context.put("addOthersValue",
+							pv.getAddOthersValue() != null
+									? new BigDecimal(pv.getAddOthersValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalAdditions",
+							pv.getTotalAdditions() != null
+									? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("deductAdvanceNarration",
+							pv.getDeductAdvanceNarration() != null ? pv.getDeductAdvanceNarration() : "");
+					context.put("deductAdvanceValue",
+							pv.getDeductAdvanceValue() != null
+									? new BigDecimal(pv.getDeductAdvanceValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("cattleFeedNarration",
+							pv.getCattleFeedNarration() != null ? pv.getCattleFeedNarration() : "");
+					context.put("cattleFeedValue",
+							pv.getCattleFeedValue() != null
+									? new BigDecimal(pv.getCattleFeedValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
 					context.put("MTENarration", pv.getMTENarration() != null ? pv.getMTENarration() : "");
-					context.put("MTEValue", pv.getMTEValue() != null ? new BigDecimal(pv.getMTEValue()).setScale(2, RoundingMode.HALF_UP) : "");
+					context.put("MTEValue",
+							pv.getMTEValue() != null
+									? new BigDecimal(pv.getMTEValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
 					context.put("fodderNarration", pv.getFodderNarration() != null ? pv.getFodderNarration() : "");
-					context.put("fodderValue", pv.getFodderValue() != null ? new BigDecimal(pv.getFodderValue()).setScale(2, RoundingMode.HALF_UP) : "");
+					context.put("fodderValue",
+							pv.getFodderValue() != null
+									? new BigDecimal(pv.getFodderValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
 					context.put("cowLoanNarration", pv.getCowLoanNarration() != null ? pv.getCowLoanNarration() : "");
-					context.put("cowLoanValue", pv.getCowLoanValue() != null ? new BigDecimal(pv.getCowLoanValue()).setScale(2, RoundingMode.HALF_UP) : "");
+					context.put("cowLoanValue",
+							pv.getCowLoanValue() != null
+									? new BigDecimal(pv.getCowLoanValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
 					context.put("vaccineNarration", pv.getVaccineNarration() != null ? pv.getVaccineNarration() : "");
-					context.put("vaccineValue", pv.getVaccineValue() != null ? new BigDecimal(pv.getVaccineValue()).setScale(2, RoundingMode.HALF_UP) : "");
+					context.put("vaccineValue",
+							pv.getVaccineValue() != null
+									? new BigDecimal(pv.getVaccineValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
 					context.put("shareNarration", pv.getShareNarration() != null ? pv.getShareNarration() : "");
-					context.put("shareValue", pv.getShareValue() != null ? new BigDecimal(pv.getShareValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("deductOthersNarration", pv.getDeductOthersNarration() != null ? pv.getDeductOthersNarration() : "");
-					context.put("deductOthersValue", pv.getDeductOthersValue() != null ? new BigDecimal(pv.getDeductOthersValue()).setScale(2, RoundingMode.HALF_UP) : "");
-					context.put("totalDeductions", pv.getTotalDeductions() != null ? new BigDecimal(pv.getTotalDeductions()).setScale(2, RoundingMode.HALF_UP) : "");
+					context.put("shareValue",
+							pv.getShareValue() != null
+									? new BigDecimal(pv.getShareValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("deductOthersNarration",
+							pv.getDeductOthersNarration() != null ? pv.getDeductOthersNarration() : "");
+					context.put("deductOthersValue",
+							pv.getDeductOthersValue() != null
+									? new BigDecimal(pv.getDeductOthersValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalDeductions",
+							pv.getTotalDeductions() != null
+									? new BigDecimal(pv.getTotalDeductions()).setScale(2, RoundingMode.HALF_UP)
+									: "");
 					context.put("grossAmount", grossAmount);
 					context.put("billTotal", billTotal);
 					context.put("billTotalAmtToWord", amountToWord.convertToIndianCurrency(billTotal.toString()));
-					
+
+					// sorting purchase voucher details data date wise
+					this.sortPurchaseVoucherDataDateWise(pv);
+
 					for (PurchaseVoucherDetails pvDeatilsObj : pv.getPurchaseVoucherDetails()) {
 						HashMap map = new HashMap();
 						map.put("supplyDate", ddMMyyyy.format(pvDeatilsObj.getDate()));
-						map.put("qty", pvDeatilsObj.getQty() != null ? new BigDecimal(pvDeatilsObj.getQty()).setScale(3, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-						map.put("shift", pvDeatilsObj.getShift() != null && !pvDeatilsObj.getShift().trim().equalsIgnoreCase("") ? pvDeatilsObj.getShift().charAt(0) : "");
-						map.put("fatP", pvDeatilsObj.getFatP() != null ? new BigDecimal(pvDeatilsObj.getFatP()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+						map.put("qty",
+								pvDeatilsObj.getQty() != null
+										? new BigDecimal(pvDeatilsObj.getQty()).setScale(3, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("shift",
+								pvDeatilsObj.getShift() != null && !pvDeatilsObj.getShift().trim().equalsIgnoreCase("")
+										? pvDeatilsObj.getShift().charAt(0)
+										: "");
+						map.put("fatP",
+								pvDeatilsObj.getFatP() != null
+										? new BigDecimal(pvDeatilsObj.getFatP()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
 						map.put("fatQuality", pvDeatilsObj.getFatQuality() != null ? pvDeatilsObj.getFatQuality() : "");
-						map.put("snfP", pvDeatilsObj.getSnfP() != null ? new BigDecimal(pvDeatilsObj.getSnfP()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+						map.put("snfP",
+								pvDeatilsObj.getSnfP() != null
+										? new BigDecimal(pvDeatilsObj.getSnfP()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
 						map.put("snfQuality", pvDeatilsObj.getSnfQuality() != null ? pvDeatilsObj.getSnfQuality() : "");
-						map.put("fateRate", pvDeatilsObj.getFatRate() != null ? new BigDecimal(pvDeatilsObj.getFatRate()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-						map.put("snfRate", pvDeatilsObj.getSnfRate() != null ? new BigDecimal(pvDeatilsObj.getSnfRate()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-						map.put("milkRate", pvDeatilsObj.getMilkRate() != null ? new BigDecimal(pvDeatilsObj.getMilkRate()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-						map.put("fatAmount", pvDeatilsObj.getFatAmount() != null ? new BigDecimal(pvDeatilsObj.getFatAmount()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-						map.put("snfAmount", pvDeatilsObj.getSnfAmount() != null ? new BigDecimal(pvDeatilsObj.getSnfAmount()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-						map.put("milkPrice", pvDeatilsObj.getMilkPrice() != null ? new BigDecimal(pvDeatilsObj.getMilkPrice()).setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+						map.put("fateRate",
+								pvDeatilsObj.getFatRate() != null
+										? new BigDecimal(pvDeatilsObj.getFatRate()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("snfRate",
+								pvDeatilsObj.getSnfRate() != null
+										? new BigDecimal(pvDeatilsObj.getSnfRate()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("milkRate",
+								pvDeatilsObj.getMilkRate() != null
+										? new BigDecimal(pvDeatilsObj.getMilkRate()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("fatAmount",
+								pvDeatilsObj.getFatAmount() != null
+										? new BigDecimal(pvDeatilsObj.getFatAmount()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("snfAmount",
+								pvDeatilsObj.getSnfAmount() != null
+										? new BigDecimal(pvDeatilsObj.getSnfAmount()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("milkPrice",
+								pvDeatilsObj.getMilkPrice() != null
+										? new BigDecimal(pvDeatilsObj.getMilkPrice()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
 						purchaseDetailsArr.add(map);
-					}				
+					}
 					context.put("purchaseDetails", purchaseDetailsArr);
 				}
-				
+
 				StringWriter writer = new StringWriter();
 				Template template = engine.getTemplate("reports/purchaseInvoice.vm");
 				template.merge(context, writer);
-				if(count == idArr.length-1) {
+				if (count == idArr.length - 1) {
 					newWriter.append(writer.toString());
 				} else {
-					newWriter.append(writer.toString()+"<div style='clear:both;page-break-before: always;'></div>");
+					newWriter.append(writer.toString() + "<div style='clear:both;page-break-before: always;'></div>");
 				}
 			}
 		}
 		return createPdf(BASEURI, newWriter.toString());
 	}
 
-	public byte[] createPdf(String baseUri, String html) throws IOException {
+	/**
+	 * {@link Deprecated}
+	 * 
+	 * @param ids
+	 * @return
+	 * @throws IOException
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public byte[] multipleGeneratePdfDuplicate(String ids) throws IOException {
+
+		ddMMyyyy = new SimpleDateFormat("dd-MM-yyyy");
+		amountToWord = new AmountToWordConverter();
+
+//        velocity engine initialization
+		VelocityEngine engine = new VelocityEngine();
+		engine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+		engine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+		engine.init();
+
+		String[] idArr = ids.split(",");
+		VelocityContext context1 = new VelocityContext();
+		ArrayList<HashMap> dataArr = new ArrayList<>();
+		for (String id : idArr) {
+			if (!id.equalsIgnoreCase("")) {
+				List<HashMap> purchaseDetailsArr = new ArrayList<>();
+
+				PurchaseVoucher pv = purchaseVoucherDA.getPurchaseVoucherObj(Integer.parseInt(id));
+				if (pv != null) {
+					BigDecimal totalMilkPrice = pv.getTotalMilkprice() != null
+							? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP)
+							: BigDecimal.ZERO;
+					BigDecimal totalAdditions = pv.getTotalAdditions() != null
+							? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP)
+							: BigDecimal.ZERO;
+					BigDecimal grossAmount = totalMilkPrice.add(totalAdditions).setScale(2, RoundingMode.HALF_UP);
+					BigDecimal billTotal = pv.getBillTotal() != null
+							? new BigDecimal(pv.getBillTotal()).setScale(2, RoundingMode.HALF_UP)
+							: BigDecimal.ZERO;
+
+					HashMap context = new HashMap();
+					context.put("billNo", pv.getBillNo());
+					context.put("billDate", ddMMyyyy.format(pv.getBillDate()));
+					context.put("periodFromDate", ddMMyyyy.format(pv.getPeriodFromDate()));
+					context.put("periodToDate", ddMMyyyy.format(pv.getPeriodToDate()));
+					context.put("partyName", pv.getPartyMaster().getPartyName());
+					context.put("partyAddress", pv.getPartyMaster().getAddress());
+					context.put("plantName", pv.getPartyMaster().getPlantName());
+					context.put("accNo", pv.getPartyMaster().getPartyBankAccNo());
+					context.put("totalQty",
+							pv.getTotalQty() != null
+									? new BigDecimal(pv.getTotalQty()).setScale(3, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalFatAmount",
+							pv.getTotalFatAmount() != null
+									? new BigDecimal(pv.getTotalFatAmount()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalSnfAmount",
+							pv.getTotalSnfAmount() != null
+									? new BigDecimal(pv.getTotalSnfAmount()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalMilkPrice",
+							pv.getTotalMilkprice() != null
+									? new BigDecimal(pv.getTotalMilkprice()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("commissionNarration",
+							pv.getCommissionNarration() != null ? pv.getCommissionNarration() : "");
+					context.put("commissionValue",
+							pv.getCommissionValue() != null
+									? new BigDecimal(pv.getCommissionValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("splIncentiveNarration",
+							pv.getSplIncentiveNarration() != null ? pv.getSplIncentiveNarration() : "");
+					context.put("splIncentiveValue",
+							pv.getSplIncentiveValue() != null
+									? new BigDecimal(pv.getSplIncentiveValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("headLoadNarration",
+							pv.getHeadLoadNarration() != null ? pv.getHeadLoadNarration() : "");
+					context.put("headLoadValue",
+							pv.getHeadLoadValue() != null
+									? new BigDecimal(pv.getHeadLoadValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("sourMilkNarration",
+							pv.getSourMilkNarration() != null ? pv.getSourMilkNarration() : "");
+					context.put("sourMilkValue",
+							pv.getSourMilkValue() != null
+									? new BigDecimal(pv.getSourMilkValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("addAdvanceNarration",
+							pv.getAddAdvanceNarration() != null ? pv.getAddAdvanceNarration() : "");
+					context.put("addAdvanceValue",
+							pv.getAddAdvanceValue() != null
+									? new BigDecimal(pv.getAddAdvanceValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("testEquipMentNarration",
+							pv.getTestEquipMentNarration() != null ? pv.getTestEquipMentNarration() : "");
+					context.put("testEquipMentValue",
+							pv.getTestEquipMentValue() != null
+									? new BigDecimal(pv.getTestEquipMentValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("lateArrivalNarration",
+							pv.getLateArrivalNarration() != null ? pv.getLateArrivalNarration() : "");
+					context.put("lateArrivalValue",
+							pv.getLateArrivalValue() != null
+									? new BigDecimal(pv.getLateArrivalValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("arrearNarration", pv.getArrearNarration() != null ? pv.getArrearNarration() : "");
+					context.put("arrearValue",
+							pv.getArrearValue() != null
+									? new BigDecimal(pv.getArrearValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("adjustmentNarration",
+							pv.getAdjustmentNarration() != null ? pv.getAdjustmentNarration() : "");
+					context.put("adjustmentValue",
+							pv.getAdjustmentValue() != null
+									? new BigDecimal(pv.getAdjustmentValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("addOthersNarration",
+							pv.getAddOthersNarration() != null ? pv.getAddOthersNarration() : "");
+					context.put("addOthersValue",
+							pv.getAddOthersValue() != null
+									? new BigDecimal(pv.getAddOthersValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalAdditions",
+							pv.getTotalAdditions() != null
+									? new BigDecimal(pv.getTotalAdditions()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("deductAdvanceNarration",
+							pv.getDeductAdvanceNarration() != null ? pv.getDeductAdvanceNarration() : "");
+					context.put("deductAdvanceValue",
+							pv.getDeductAdvanceValue() != null
+									? new BigDecimal(pv.getDeductAdvanceValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("cattleFeedNarration",
+							pv.getCattleFeedNarration() != null ? pv.getCattleFeedNarration() : "");
+					context.put("cattleFeedValue",
+							pv.getCattleFeedValue() != null
+									? new BigDecimal(pv.getCattleFeedValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("MTENarration", pv.getMTENarration() != null ? pv.getMTENarration() : "");
+					context.put("MTEValue",
+							pv.getMTEValue() != null
+									? new BigDecimal(pv.getMTEValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("fodderNarration", pv.getFodderNarration() != null ? pv.getFodderNarration() : "");
+					context.put("fodderValue",
+							pv.getFodderValue() != null
+									? new BigDecimal(pv.getFodderValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("cowLoanNarration", pv.getCowLoanNarration() != null ? pv.getCowLoanNarration() : "");
+					context.put("cowLoanValue",
+							pv.getCowLoanValue() != null
+									? new BigDecimal(pv.getCowLoanValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("vaccineNarration", pv.getVaccineNarration() != null ? pv.getVaccineNarration() : "");
+					context.put("vaccineValue",
+							pv.getVaccineValue() != null
+									? new BigDecimal(pv.getVaccineValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("shareNarration", pv.getShareNarration() != null ? pv.getShareNarration() : "");
+					context.put("shareValue",
+							pv.getShareValue() != null
+									? new BigDecimal(pv.getShareValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("deductOthersNarration",
+							pv.getDeductOthersNarration() != null ? pv.getDeductOthersNarration() : "");
+					context.put("deductOthersValue",
+							pv.getDeductOthersValue() != null
+									? new BigDecimal(pv.getDeductOthersValue()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("totalDeductions",
+							pv.getTotalDeductions() != null
+									? new BigDecimal(pv.getTotalDeductions()).setScale(2, RoundingMode.HALF_UP)
+									: "");
+					context.put("grossAmount", grossAmount);
+					context.put("billTotal", billTotal);
+					context.put("billTotalAmtToWord", amountToWord.convertToIndianCurrency(billTotal.toString()));
+
+					// sorting purchase voucher details data date wise
+					this.sortPurchaseVoucherDataDateWise(pv);
+
+					for (PurchaseVoucherDetails pvDeatilsObj : pv.getPurchaseVoucherDetails()) {
+						HashMap map = new HashMap();
+						map.put("supplyDate", ddMMyyyy.format(pvDeatilsObj.getDate()));
+						map.put("qty",
+								pvDeatilsObj.getQty() != null
+										? new BigDecimal(pvDeatilsObj.getQty()).setScale(3, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("shift",
+								pvDeatilsObj.getShift() != null && !pvDeatilsObj.getShift().trim().equalsIgnoreCase("")
+										? pvDeatilsObj.getShift().charAt(0)
+										: "");
+						map.put("fatP",
+								pvDeatilsObj.getFatP() != null
+										? new BigDecimal(pvDeatilsObj.getFatP()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("fatQuality", pvDeatilsObj.getFatQuality() != null ? pvDeatilsObj.getFatQuality() : "");
+						map.put("snfP",
+								pvDeatilsObj.getSnfP() != null
+										? new BigDecimal(pvDeatilsObj.getSnfP()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("snfQuality", pvDeatilsObj.getSnfQuality() != null ? pvDeatilsObj.getSnfQuality() : "");
+						map.put("fateRate",
+								pvDeatilsObj.getFatRate() != null
+										? new BigDecimal(pvDeatilsObj.getFatRate()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("snfRate",
+								pvDeatilsObj.getSnfRate() != null
+										? new BigDecimal(pvDeatilsObj.getSnfRate()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("milkRate",
+								pvDeatilsObj.getMilkRate() != null
+										? new BigDecimal(pvDeatilsObj.getMilkRate()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("fatAmount",
+								pvDeatilsObj.getFatAmount() != null
+										? new BigDecimal(pvDeatilsObj.getFatAmount()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("snfAmount",
+								pvDeatilsObj.getSnfAmount() != null
+										? new BigDecimal(pvDeatilsObj.getSnfAmount()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						map.put("milkPrice",
+								pvDeatilsObj.getMilkPrice() != null
+										? new BigDecimal(pvDeatilsObj.getMilkPrice()).setScale(2, RoundingMode.HALF_UP)
+										: BigDecimal.ZERO);
+						purchaseDetailsArr.add(map);
+					}
+					context.put("purchaseDetails", purchaseDetailsArr);
+					dataArr.add(context);
+				} // purchase voucher null checking
+			} // id blank checking
+		} // loop end
+
+		context1.put("purchaseDetailsList", dataArr);
+
+		StringWriter writer = new StringWriter();
+		Template template = engine.getTemplate("reports/multiPurchaseInvoice.vm");
+		template.merge(context1, writer);
+		return createPdf(BASEURI, writer.toString());
+	}
+
+	/**
+	 * creating pdf in bytearr
+	 * 
+	 * @param baseUri
+	 * @param html
+	 * @return
+	 * @throws IOException
+	 */
+	private byte[] createPdf(String baseUri, String html) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 //      ConverterProperties properties = new ConverterProperties();
 //      properties.setBaseUri(baseUri);

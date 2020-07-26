@@ -64,6 +64,6 @@ public class AmountToWordConverter {
         String Rupees = String.join(" ", str).trim();
 
         String paise = (decimal) > 0 ? " And " + words.get(Integer.valueOf((int) (decimal - decimal % 10))) + " " + words.get(Integer.valueOf((int) (decimal % 10))) : "";
-        return Rupees + paise + "Paise Only";
+        return Rupees + paise + " Paise Only";
     }
 }

@@ -18,6 +18,8 @@ import com.dairyfarm.service.master.CommonService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+//import io.swagger.annotations.ApiOperation;
+
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/partymaster")
@@ -34,9 +36,12 @@ public class PartyMasterRestController {
 	}
 	
 	@GetMapping("/fetch/{id}")
+//	@ApiOperation(value = "Find Party Information by id", 
+//				notes = "Provide specific id to find specific Party information",
+//				response = PartyMaster.class)
 	public JSONObject getPartyMasterById(@PathVariable int id) {
 		return partyMasterService.getJsonObj(id);
-	}
+	} 
 	
 	@PostMapping("/create")
 	public JSONObject createPartyMaster(@RequestBody PartyMaster party) {
